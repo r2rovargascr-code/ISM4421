@@ -132,13 +132,15 @@
     return q ? q[1] === '1' : true;
   })();
 
-  // CRT style: 'deep' (dark tube), 'soft' (lighter tube), or 'glass' (light, translucent).
-  // Preview any of them by appending ?look=deep, ?look=soft or ?look=glass to the URL.
+  // Look: 'deep' (dark CRT), 'soft' (lighter CRT), 'glass' (light, translucent CRT),
+  // or 'ios6' (a close copy of the iOS 6 Weather app, no CRT).
+  // Preview any of them by appending ?look=<name> to the URL.
   var LOOK = (function () {
-    var q = /[?&]look=(deep|soft|glass)/.exec(location.search);
+    var q = /[?&]look=(deep|soft|glass|ios6)/.exec(location.search);
     return q ? q[1] : 'deep';
   })();
   document.body.classList.add('look-' + LOOK);
+  var IOS6 = LOOK === 'ios6';
 
   // Coordinate space of the main screen (every card shares it, so one CRT filter fits all)
   var TW = { w: 300, h: 160, cx: 50, cy: 46 };
@@ -229,6 +231,11 @@
     LOCATIONS.forEach(function (loc) {
       var card = document.getElementById('card-' + loc.id);
       if (!card) return;
+      if (IOS6) {
+        card.querySelector('.i6-time').textContent =
+          fmt(loc.tz, 'time', { hour: 'numeric', minute: '2-digit' }).format(now);
+        return;
+      }
       var t = timeParts(loc.tz, now);
       var h = t.hour % 24, m = t.minute, s = t.second;
       var svg = card.querySelector('.hero svg');
@@ -252,6 +259,7 @@
   var cardsEl = document.getElementById('cards');
 
   function buildShells() {
+    if (IOS6) return buildShellsIOS6();
     cardsEl.innerHTML = LOCATIONS.map(function (loc) {
       return '<article class="card" id="card-' + loc.id + '" aria-label="' + loc.name + '">' +
         '<div class="gloss"></div>' +
@@ -278,6 +286,7 @@
   }
 
   function renderWeather(loc) {
+    if (IOS6) return renderWeatherIOS6(loc);
     var card = document.getElementById('card-' + loc.id);
     var box = card.querySelector('.weather');
     var d = state.data[loc.id];
@@ -339,6 +348,114 @@
 
   function renderAll() { LOCATIONS.forEach(renderWeather); }
 
+  /* ---------- iOS 6 Weather look ---------- */
+
+  function buildShellsIOS6() {
+    var cities = LOCATIONS.map(function (l) {
+      return '<li><span class="i6-grip-l" aria-hidden="true"></span><b>' + l.name + '</b><small>' + l.region + '</small>' +
+        '<span class="i6-grip" aria-hidden="true"></span></li>';
+    }).join('');
+
+    cardsEl.innerHTML = LOCATIONS.map(function (loc) {
+      return '<article class="i6-card" id="card-' + loc.id + '" aria-label="' + loc.name + '">' +
+        '<div class="i6-flip">' +
+          '<section class="i6-face i6-front">' +
+            '<header class="i6-top">' +
+              '<div class="i6-place"><h2>' + loc.name + '</h2>' +
+                '<p class="i6-time">&nbsp;</p><p class="i6-hilo">&nbsp;</p></div>' +
+              '<div class="i6-now">--</div>' +
+            '</header>' +
+            '<div class="i6-hourly"></div>' +
+            '<ul class="i6-daily"></ul>' +
+            '<footer class="i6-bar">' +
+              '<a class="i6-brand" href="https://open-meteo.com/" target="_blank" rel="noopener">Open-Meteo</a>' +
+              '<span class="i6-updated"></span>' +
+              '<button type="button" class="i6-info" aria-label="Settings">i</button>' +
+            '</footer>' +
+          '</section>' +
+          '<section class="i6-face i6-back" aria-label="Settings">' +
+            '<ul class="i6-table">' + cities + '</ul>' +
+            '<div class="i6-back-bar">' +
+              '<div class="segmented i6-seg" role="group" aria-label="Temperature unit">' +
+                '<button type="button" data-unit="C">&deg;C</button>' +
+                '<button type="button" data-unit="F">&deg;F</button>' +
+                '<button type="button" data-unit="K">K</button>' +
+              '</div>' +
+              '<button type="button" class="i6-done">Done</button>' +
+            '</div>' +
+          '</section>' +
+        '</div>' +
+      '</article>';
+    }).join('');
+
+    // Page control below the cards (used on phones)
+    var dots = document.createElement('nav');
+    dots.className = 'i6-dots';
+    dots.setAttribute('aria-label', 'Locations');
+    dots.innerHTML = LOCATIONS.map(function (l, i) {
+      return '<button type="button" aria-label="' + l.name + '"' + (i === 0 ? ' class="active"' : '') + '></button>';
+    }).join('');
+    cardsEl.parentNode.insertBefore(dots, cardsEl.nextSibling);
+    Array.prototype.forEach.call(dots.children, function (b, i) {
+      b.addEventListener('click', function () {
+        cardsEl.scrollTo({ left: cardsEl.children[i].offsetLeft - cardsEl.offsetLeft - 10, behavior: 'smooth' });
+      });
+    });
+    cardsEl.addEventListener('scroll', function () {
+      var idx = Math.round(cardsEl.scrollLeft / cardsEl.clientWidth);
+      Array.prototype.forEach.call(dots.children, function (b, i) { b.classList.toggle('active', i === idx); });
+    }, { passive: true });
+
+    // "i" flips the card to its settings back; "Done" flips it back
+    cardsEl.addEventListener('click', function (e) {
+      var card = e.target.closest('.i6-card');
+      if (!card) return;
+      if (e.target.closest('.i6-info')) card.classList.add('flipped');
+      else if (e.target.closest('.i6-done')) card.classList.remove('flipped');
+      else if (e.target.closest('.i6-seg button')) setUnit(e.target.closest('button').getAttribute('data-unit'));
+    });
+  }
+
+  function renderWeatherIOS6(loc) {
+    var card = document.getElementById('card-' + loc.id);
+    var d = state.data[loc.id];
+    if (state.updatedAt) {
+      card.querySelector('.i6-updated').textContent = 'Updated ' + state.updatedAt;
+    }
+    if (!d) {
+      if (state.errors[loc.id]) card.querySelector('.i6-hilo').textContent = 'Weather unavailable';
+      return;
+    }
+
+    var c = d.current;
+    card.classList.toggle('night', c.is_day !== 1);
+    var now = card.querySelector('.i6-now');
+    now.textContent = temp(c.temperature_2m);
+    now.classList.toggle('long', state.unit === 'K');
+    card.querySelector('.i6-hilo').textContent =
+      'H: ' + temp(d.daily.temperature_2m_max[0]) + '  L: ' + temp(d.daily.temperature_2m_min[0]);
+
+    var hourKey = c.time.slice(0, 13) + ':00';
+    var start = Math.max(0, d.hourly.time.indexOf(hourKey));
+    var hours = '';
+    for (var i = start; i < Math.min(start + HOURS_SHOWN, d.hourly.time.length); i++) {
+      hours += '<div class="i6-hour">' +
+        '<div class="h">' + hourLabel(d.hourly.time[i], i === start) + '</div>' +
+        icon(describe(d.hourly.weather_code[i])[1], d.hourly.is_day[i] === 1) +
+        '<div class="t">' + temp(d.hourly.temperature_2m[i]) + '</div></div>';
+    }
+    card.querySelector('.i6-hourly').innerHTML = hours;
+
+    var days = '';
+    for (var j = 0; j < Math.min(DAYS_SHOWN, d.daily.time.length); j++) {
+      days += '<li><span class="d">' + dayName(d.daily.time[j], j) + '</span>' +
+        icon(describe(d.daily.weather_code[j])[1], true) +
+        '<span class="hi">' + temp(d.daily.temperature_2m_max[j]) + '</span>' +
+        '<span class="lo">' + temp(d.daily.temperature_2m_min[j]) + '</span></li>';
+    }
+    card.querySelector('.i6-daily').innerHTML = days;
+  }
+
   /* ---------- Data ---------- */
 
   function url(loc) {
@@ -378,6 +495,12 @@
       refreshBtn.classList.remove('spinning');
       refreshBtn.disabled = false;
       var ok = LOCATIONS.some(function (l) { return !state.errors[l.id]; });
+      if (ok) {
+        var t = new Date();
+        state.updatedAt = (t.getMonth() + 1) + '/' + t.getDate() + '/' + String(t.getFullYear()).slice(2) + ' ' +
+          t.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+        if (IOS6) renderAll();
+      }
       updatedEl.textContent = ok
         ? 'Updated ' + new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })
         : 'Unable to reach Open-Meteo';
@@ -410,7 +533,7 @@
 
   /* ---------- Start ---------- */
 
-  buildCrtMap();
+  if (!IOS6) buildCrtMap();
   buildShells();
   setUnit(state.unit);
   tick();

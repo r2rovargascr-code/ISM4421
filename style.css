@@ -529,3 +529,335 @@ button { font: inherit; cursor: pointer; }
   .skeleton,
   .screen.crt > * { animation: none; }
 }
+
+/* ==========================================================================
+   iOS 6 Weather look (?look=ios6) — a close copy of the stock app
+   ========================================================================== */
+
+.look-ios6 {
+  padding: 28px 10px;
+  background-color: #1b1c1f;
+  background-image:
+    repeating-linear-gradient(0deg, rgba(255,255,255,.025) 0 1px, transparent 1px 2px),
+    repeating-linear-gradient(90deg, rgba(0,0,0,.12) 0 1px, transparent 1px 3px),
+    radial-gradient(ellipse at top, #2c2e33, #151619);
+}
+.look-ios6 .window {
+  max-width: none;
+  background: transparent;
+  box-shadow: none;
+  border-radius: 0;
+  overflow: visible;
+}
+.look-ios6 .titlebar,
+.look-ios6 .statusbar { display: none; }
+
+.look-ios6 .cards {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 28px;
+  padding: 0;
+  background: none;
+  box-shadow: none;
+}
+
+.i6-card {
+  flex: 0 0 300px;
+  width: 300px;
+  min-width: 0;
+  perspective: 1400px;
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+}
+.i6-flip {
+  position: relative;
+  transition: transform .75s cubic-bezier(.4, .1, .2, 1);
+  transform-style: preserve-3d;
+}
+.i6-card.flipped .i6-flip { transform: rotateY(180deg); }
+.i6-face {
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  border-radius: 9px;
+  overflow: hidden;
+  border: 1px solid #000;
+  box-shadow: 0 0 0 1px rgba(255,255,255,.08), 0 6px 18px rgba(0,0,0,.6);
+}
+
+/* ---- Front ---- */
+.i6-front {
+  position: relative;
+  color: #fff;
+  text-shadow: 0 -1px 0 rgba(0,0,0,.45);
+  background: linear-gradient(#72b6ec 0%, #4a92d8 30%, #2f73bf 70%, #2462aa 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.55),
+    0 0 0 1px rgba(255,255,255,.08),
+    0 6px 18px rgba(0,0,0,.6);
+}
+.i6-card.night .i6-front {
+  background: linear-gradient(#6b6ea8 0%, #4b4e8a 30%, #33366f 70%, #262958 100%);
+}
+/* Soft sheen across the top section */
+.i6-front::before {
+  content: "";
+  position: absolute;
+  left: 0; right: 0; top: 0;
+  height: 110px;
+  background: radial-gradient(ellipse at 50% -40%, rgba(255,255,255,.35), rgba(255,255,255,0) 70%);
+  pointer-events: none;
+}
+
+.i6-top {
+  position: relative;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 14px 14px 12px;
+  min-height: 104px;
+}
+.i6-place h2 {
+  margin: 0;
+  font-size: 23px;
+  font-weight: bold;
+  letter-spacing: -.3px;
+  text-shadow: 0 -1px 0 rgba(0,0,0,.5), 0 1px 2px rgba(0,0,0,.25);
+}
+.i6-time,
+.i6-hilo {
+  margin: 3px 0 0;
+  font-size: 14px;
+  font-weight: bold;
+  color: rgba(255,255,255,.85);
+}
+.i6-hilo { white-space: pre; }
+.i6-now {
+  font-size: 66px;
+  font-weight: normal;
+  line-height: .95;
+  letter-spacing: -2px;
+  text-shadow: 0 -1px 0 rgba(0,0,0,.35), 0 2px 4px rgba(0,0,0,.35);
+}
+.i6-now.long { font-size: 46px; letter-spacing: -1px; margin-top: 10px; }
+
+.i6-hourly {
+  position: relative;
+  display: flex;
+  overflow-x: auto;
+  scrollbar-width: none;
+  min-height: 84px;
+  background: linear-gradient(rgba(0,0,0,.3), rgba(0,0,0,.22));
+  border-top: 1px solid rgba(0,0,0,.45);
+  border-bottom: 1px solid rgba(255,255,255,.18);
+  box-shadow: inset 0 3px 5px rgba(0,0,0,.25), 0 1px 0 rgba(0,0,0,.25);
+}
+.i6-hourly::-webkit-scrollbar { display: none; }
+.i6-hour {
+  flex: 0 0 50px;
+  padding: 8px 0 7px;
+  text-align: center;
+  font-size: 12px;
+  font-weight: bold;
+}
+.i6-hour .icon { display: block; width: 30px; height: 30px; margin: 4px auto 3px; }
+.i6-hour .t { font-size: 15px; }
+
+.i6-daily {
+  list-style: none;
+  margin: 0;
+  padding: 2px 0 0;
+}
+.i6-daily li {
+  display: grid;
+  grid-template-columns: 1fr 34px 50px 46px;
+  align-items: center;
+  height: 40px;
+  padding: 0 14px;
+  border-bottom: 1px solid rgba(0,0,0,.2);
+  box-shadow: 0 1px 0 rgba(255,255,255,.1);
+}
+.i6-daily li:last-child { border-bottom: 0; box-shadow: none; }
+.i6-daily .d {
+  font-size: 14px;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: .4px;
+}
+.i6-daily .icon { width: 30px; height: 30px; }
+.i6-daily .hi { text-align: right; font-size: 17px; font-weight: bold; }
+.i6-daily .lo { text-align: right; font-size: 17px; font-weight: bold; color: rgba(255,255,255,.5); }
+
+.i6-bar {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  height: 36px;
+  padding: 0 10px;
+  font-size: 10px;
+  background: linear-gradient(rgba(0,0,0,.12), rgba(0,0,0,.32));
+  border-top: 1px solid rgba(0,0,0,.35);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.12);
+}
+.i6-brand {
+  justify-self: start;
+  color: #fff;
+  font-size: 12px;
+  font-weight: bold;
+  font-style: italic;
+  letter-spacing: -.2px;
+  text-decoration: none;
+}
+.i6-updated { color: rgba(255,255,255,.85); }
+.i6-info {
+  justify-self: end;
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  border-radius: 50%;
+  border: 2px solid #fff;
+  color: #fff;
+  font: italic bold 13px/15px Georgia, "Times New Roman", serif;
+  text-shadow: 0 -1px 0 rgba(0,0,0,.4);
+  background: radial-gradient(circle at 50% 30%, rgba(255,255,255,.35), rgba(255,255,255,.05));
+  box-shadow: 0 1px 2px rgba(0,0,0,.45), inset 0 1px 1px rgba(255,255,255,.4);
+}
+
+/* ---- Back (settings) ---- */
+.i6-back {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  transform: rotateY(180deg);
+  background-color: #34435b;
+  background-image:
+    repeating-linear-gradient(0deg, rgba(255,255,255,.035) 0 1px, transparent 1px 3px),
+    repeating-linear-gradient(90deg, rgba(0,0,0,.1) 0 1px, transparent 1px 3px),
+    linear-gradient(#475873, #2c3a52);
+}
+.i6-table {
+  list-style: none;
+  margin: 14px 10px;
+  padding: 0;
+  background: #fff;
+  border: 1px solid #1d2635;
+  border-radius: 8px;
+  box-shadow: 0 1px 0 rgba(255,255,255,.2);
+  overflow: hidden;
+}
+.i6-table li {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  height: 46px;
+  padding: 0 44px 0 38px;
+  color: #000;
+  border-bottom: 1px solid #d8d8d8;
+}
+.i6-table li:last-child { border-bottom: 0; }
+.i6-table b { font-size: 16px; }
+.i6-table small { font-size: 12px; color: #6d6d72; }
+/* Red delete control (decorative) */
+.i6-grip-l {
+  position: absolute;
+  left: 9px;
+  top: 50%;
+  width: 20px;
+  height: 20px;
+  margin-top: -10px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 50% 35%, #ff7b73, #e0271b 60%, #a8150c);
+  box-shadow: 0 1px 1px rgba(0,0,0,.4), inset 0 0 0 1.5px #fff;
+}
+.i6-grip-l::after {
+  content: "";
+  position: absolute;
+  left: 5px; right: 5px; top: 9px;
+  height: 2px;
+  background: #fff;
+}
+/* Reorder grip */
+.i6-grip {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  width: 20px;
+  height: 11px;
+  margin-top: -6px;
+  background: repeating-linear-gradient(#b3b3b3 0 2px, transparent 2px 4.5px);
+}
+.i6-back-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: auto;
+  padding: 10px;
+}
+.look-ios6 .i6-seg button {
+  min-width: 44px;
+  color: #fff;
+  text-shadow: 0 -1px 0 rgba(0,0,0,.45);
+  background: linear-gradient(#8a98ad, #5f6f88 50%, #53637e 51%, #56668a);
+  border-color: #27324a;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.3);
+}
+.look-ios6 .i6-seg button.active {
+  background: linear-gradient(#3a4a66, #2c3a55);
+  box-shadow: inset 0 1px 4px rgba(0,0,0,.5);
+}
+.i6-done {
+  padding: 6px 14px;
+  font-size: 13px;
+  font-weight: bold;
+  color: #fff;
+  text-shadow: 0 -1px 0 rgba(0,0,0,.45);
+  background: linear-gradient(#77a3ec, #3d73de 50%, #2a61d3 51%, #2f67d8);
+  border: 1px solid #1c3f86;
+  border-radius: 5px;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.35), 0 1px 0 rgba(255,255,255,.15);
+}
+
+/* Page control */
+.i6-dots {
+  display: none;
+  justify-content: center;
+  gap: 9px;
+  padding: 14px 0 4px;
+}
+.i6-dots button {
+  width: 7px;
+  height: 7px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: rgba(255,255,255,.3);
+}
+.i6-dots button.active { background: #fff; }
+
+/* Phones: one city per page, swipe between them */
+@media (max-width: 760px) {
+  .look-ios6 { padding: 10px 0; }
+  .look-ios6 .window { min-height: 0; }
+  .look-ios6 .cards {
+    justify-content: flex-start;
+    gap: 0;
+    padding: 0;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+  }
+  .look-ios6 .cards::-webkit-scrollbar { display: none; }
+  .i6-card {
+    flex: 0 0 calc(100% - 20px);
+    width: auto;
+    margin: 0 10px;
+    scroll-snap-align: center;
+  }
+  .i6-dots { display: flex; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .i6-flip { transition: none; }
+}
