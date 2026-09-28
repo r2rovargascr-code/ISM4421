@@ -13,7 +13,7 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <!-- Shared gradients and filters for the weather icons and time widgets -->
+  <!-- Shared gradients and filters for the weather icons and CRT screens -->
   <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
     <defs>
       <radialGradient id="gSun" cx="40%" cy="35%" r="70%">
@@ -41,7 +41,7 @@
         <stop offset="0" stop-color="#fff27a"/>
         <stop offset="1" stop-color="#f5a300"/>
       </linearGradient>
-      <!-- CRT look for the time widgets: barrel warp (map generated in app.js) + phosphor glow -->
+      <!-- CRT look: barrel warp (map and size set in app.js) + phosphor glow -->
       <filter id="crtWarp" filterUnits="userSpaceOnUse" x="0" y="0" width="300" height="100" color-interpolation-filters="sRGB">
         <feImage id="crtMap" x="0" y="0" width="300" height="100" preserveAspectRatio="none" result="map"/>
         <feDisplacementMap in="SourceGraphic" in2="map" scale="20" xChannelSelector="R" yChannelSelector="G" result="warped"/>
@@ -53,9 +53,6 @@
 
   <div class="window">
     <header class="titlebar">
-      <div class="traffic" aria-hidden="true">
-        <span class="light red"></span><span class="light yellow"></span><span class="light green"></span>
-      </div>
       <h1 class="title">Weather</h1>
       <div class="toolbar">
         <div class="segmented" role="group" aria-label="Temperature unit">
@@ -70,8 +67,6 @@
     </header>
 
     <main class="cards" id="cards" aria-live="polite"></main>
-
-    <nav class="page-dots" id="dots" aria-label="Locations"></nav>
 
     <footer class="statusbar">
       <span id="updated">Loading&hellip;</span>

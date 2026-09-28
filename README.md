@@ -9,19 +9,21 @@ A static weather app with live analog clocks for:
 | Guadalupe | San José, Costa Rica | America/Costa_Rica |
 
 Styled after early-2010s Apple software: a Mac OS X Lion window on desktop
-(traffic-light buttons, gradient toolbar, linen backdrop) and an iOS 6 app on
-phones (navigation bar, glossy weather cards, swipeable pages
-and page dots).
+(gradient toolbar, linen backdrop, glossy iOS 6 weather cards) and an iOS 6 app on
+phones. Time and weather sit on CRT-style screens (curvature, vignette, scanlines,
+glow) tinted to each card: blue by day, purple by night.
 
 Weather data comes from the free [Open-Meteo](https://open-meteo.com/) API — no API key required.
 
 ## Features
 
-- Current temperature on a CRT-style screen, plus feels-like, humidity, and wind
-- 12-hour hourly strip and 6-day forecast
-- Minimal monochrome analog + digital clock per city, updated every second, with an optional CRT look (curvature, vignette, scanlines, glow) — toggle `CRT_TIME_WIDGETS` in `app.js` (also controls the temperature screen), or compare with `?crt=0` / `?crt=1`
+- **Desktop:** per city, a main CRT screen with a minimal monochrome analog clock,
+  digital time and date, current temperature, condition, and high/low; plus a
+  forecast CRT screen with feels-like, humidity, wind, 12-hour strip, and 6-day list
+- **Phone:** compact list of all three cities showing time and current temperature
 - °C (default) / °F / K toggle (remembered per browser)
 - Auto-refresh every 10 minutes, plus a manual refresh button
+- CRT effect can be disabled with `CRT` in `app.js`, or compared via `?crt=0` / `?crt=1`
 
 ## Files
 

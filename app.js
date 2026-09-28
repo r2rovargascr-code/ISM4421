@@ -123,53 +123,44 @@
     return '<svg class="icon" viewBox="0 0 64 64" aria-hidden="true">' + body + '</svg>';
   }
 
-  /* ---------- Time widget: minimal monochrome clock + digital readout ---------- */
+  /* ---------- CRT screens ---------- */
 
-  // Set to false for plain screens without the CRT treatment (time and temperature).
+  // Set to false for plain screens without the CRT treatment.
   // For side-by-side comparison, append ?crt=0 or ?crt=1 to the URL.
-  var CRT_TIME_WIDGETS = (function () {
+  var CRT = (function () {
     var q = /[?&]crt=([01])/.exec(location.search);
     return q ? q[1] === '1' : true;
   })();
 
-  // Widget coordinate space (every time widget shares it, so one CRT filter fits all)
-  var TW = { w: 300, h: 100, cx: 52, cy: 50 };
+  // Coordinate space of the main screen (every card shares it, so one CRT filter fits all)
+  var TW = { w: 300, h: 160, cx: 50, cy: 46 };
 
-  function timeWidgetSVG() {
-    var ticks = '';
+  // Main screen: minimal monochrome clock, digital time and date, then current conditions.
+  function heroSVG() {
+    var c = TW.cx, y = TW.cy, ticks = '';
     for (var i = 0; i < 12; i++) {
       var major = i % 3 === 0;
-      ticks += '<line x1="' + TW.cx + '" y1="' + (TW.cy - 37) + '" x2="' + TW.cx + '" y2="' + (TW.cy - (major ? 30 : 33)) +
-        '" stroke-width="' + (major ? 1.8 : 1) + '" transform="rotate(' + i * 30 + ' ' + TW.cx + ' ' + TW.cy + ')"/>';
+      ticks += '<line x1="' + c + '" y1="' + (y - 33) + '" x2="' + c + '" y2="' + (y - (major ? 27 : 30)) +
+        '" stroke-width="' + (major ? 1.8 : 1) + '" transform="rotate(' + i * 30 + ' ' + c + ' ' + y + ')"/>';
     }
-    var c = TW.cx, y = TW.cy;
     return '<svg viewBox="0 0 ' + TW.w + ' ' + TW.h + '" role="img">' +
-      '<g' + (CRT_TIME_WIDGETS ? ' filter="url(#crtWarp)"' : '') + '>' +
+      '<g' + (CRT ? ' filter="url(#crtWarp)"' : '') + '>' +
         // Transparent backing so the filter region always spans the whole screen
         '<rect width="' + TW.w + '" height="' + TW.h + '" fill="#000" fill-opacity="0"/>' +
-        '<circle cx="' + c + '" cy="' + y + '" r="40" fill="none" stroke="currentColor" stroke-opacity=".3" stroke-width="1"/>' +
-        '<g stroke="currentColor" stroke-linecap="round">' + ticks + '</g>' +
-        '<g stroke="currentColor" stroke-linecap="round">' +
-          '<line class="hand-h" x1="' + c + '" y1="' + y + '" x2="' + c + '" y2="' + (y - 19) + '" stroke-width="3.2"/>' +
-          '<line class="hand-m" x1="' + c + '" y1="' + y + '" x2="' + c + '" y2="' + (y - 29) + '" stroke-width="2"/>' +
-          '<line class="hand-s" x1="' + c + '" y1="' + (y + 7) + '" x2="' + c + '" y2="' + (y - 34) + '" stroke-width=".8" stroke-opacity=".75"/>' +
+        '<circle cx="' + c + '" cy="' + y + '" r="36" fill="none" stroke="currentColor" stroke-opacity=".3" stroke-width="1"/>' +
+        '<g stroke="currentColor" stroke-linecap="round">' + ticks +
+          '<line class="hand-h" x1="' + c + '" y1="' + y + '" x2="' + c + '" y2="' + (y - 17) + '" stroke-width="3.2"/>' +
+          '<line class="hand-m" x1="' + c + '" y1="' + y + '" x2="' + c + '" y2="' + (y - 26) + '" stroke-width="2"/>' +
+          '<line class="hand-s" x1="' + c + '" y1="' + (y + 6) + '" x2="' + c + '" y2="' + (y - 31) + '" stroke-width=".8" stroke-opacity=".75"/>' +
         '</g>' +
         '<circle cx="' + c + '" cy="' + y + '" r="2.4" fill="currentColor"/>' +
-        '<text class="tw-time" x="112" y="54" fill="currentColor"><tspan class="hm"></tspan><tspan class="ap" dx="4"></tspan></text>' +
-        '<text class="tw-date" x="113" y="76" fill="currentColor"></text>' +
-      '</g>' +
-    '</svg>';
-  }
-
-  // Current conditions on a CRT screen: weather icon + large temperature.
-  // Shares the time widget's 300×100 space so the same CRT filter applies.
-  function tempScreenSVG(kind, isDay, value) {
-    var ic = icon(kind, isDay).replace('<svg class="icon"', '<svg x="26" y="12" width="76" height="76"');
-    return '<svg viewBox="0 0 ' + TW.w + ' ' + TW.h + '" role="img" aria-label="Current temperature ' + value + '">' +
-      '<g' + (CRT_TIME_WIDGETS ? ' filter="url(#crtWarp)"' : '') + '>' +
-        '<rect width="' + TW.w + '" height="' + TW.h + '" fill="#000" fill-opacity="0"/>' +
-        ic +
-        '<text class="tw-temp" x="196" y="73" text-anchor="middle" fill="currentColor">' + value + '</text>' +
+        '<text class="tw-time" x="104" y="52" fill="currentColor"><tspan class="hm"></tspan><tspan class="ap" dx="4"></tspan></text>' +
+        '<text class="tw-date" x="105" y="72" fill="currentColor"></text>' +
+        '<line x1="14" y1="92" x2="286" y2="92" stroke="currentColor" stroke-opacity=".22"/>' +
+        '<g class="tw-icon"></g>' +
+        '<text class="tw-temp" x="80" y="143" fill="currentColor">--</text>' +
+        '<text class="tw-cond" x="286" y="122" text-anchor="end" fill="currentColor"></text>' +
+        '<text class="tw-hilo" x="286" y="141" text-anchor="end" fill="currentColor"></text>' +
       '</g>' +
     '</svg>';
   }
@@ -177,10 +168,15 @@
   // Builds the barrel-distortion map for the CRT filter: each pixel encodes how far
   // to pull the image toward the edges, so content bulges like curved glass.
   function buildCrtMap() {
-    if (!CRT_TIME_WIDGETS) return;
+    if (!CRT) return;
     var feImage = document.getElementById('crtMap');
     if (!feImage) return;
-    var W = TW.w, H = TW.h, maxX = 7, maxY = 5, scale = 20;
+    var W = TW.w, H = TW.h, maxX = 7, maxY = 6, scale = 20;
+    var filter = document.getElementById('crtWarp');
+    [filter, feImage].forEach(function (el) {
+      el.setAttribute('width', W);
+      el.setAttribute('height', H);
+    });
     var cv = document.createElement('canvas');
     cv.width = W; cv.height = H;
     var ctx = cv.getContext('2d');
@@ -227,7 +223,7 @@
       if (!card) return;
       var t = timeParts(loc.tz, now);
       var h = t.hour % 24, m = t.minute, s = t.second;
-      var svg = card.querySelector('.timewidget svg');
+      var svg = card.querySelector('.hero svg');
       var pivot = ' ' + TW.cx + ' ' + TW.cy + ')';
       svg.querySelector('.hand-h').setAttribute('transform', 'rotate(' + ((h % 12) * 30 + m * 0.5) + pivot);
       svg.querySelector('.hand-m').setAttribute('transform', 'rotate(' + (m * 6 + s * 0.1) + pivot);
@@ -246,7 +242,6 @@
   /* ---------- Rendering ---------- */
 
   var cardsEl = document.getElementById('cards');
-  var dotsEl = document.getElementById('dots');
 
   function buildShells() {
     cardsEl.innerHTML = LOCATIONS.map(function (loc) {
@@ -255,19 +250,11 @@
         '<div class="card-top">' +
           '<div class="place"><h2>' + loc.name + '</h2><p class="region">' + loc.region + '</p></div>' +
         '</div>' +
-        '<div class="screen timewidget' + (CRT_TIME_WIDGETS ? ' crt' : '') + '">' + timeWidgetSVG() + '</div>' +
+        '<div class="screen hero' + (CRT ? ' crt' : '') + '">' + heroSVG() + '</div>' +
         '<div class="weather"><p class="message"><span class="skeleton"></span></p></div>' +
       '</article>';
     }).join('');
 
-    dotsEl.innerHTML = LOCATIONS.map(function (loc, i) {
-      return '<button type="button" aria-label="' + loc.name + '"' + (i === 0 ? ' class="active" aria-current="true"' : '') + '></button>';
-    }).join('');
-    Array.prototype.forEach.call(dotsEl.children, function (btn, i) {
-      btn.addEventListener('click', function () {
-        cardsEl.scrollTo({ left: cardsEl.children[i].offsetLeft - 16, behavior: 'smooth' });
-      });
-    });
   }
 
   function dayName(isoDate, i) {
@@ -300,6 +287,17 @@
     var isDay = c.is_day === 1;
     card.classList.toggle('night', !isDay);
 
+    // Current conditions on the main screen
+    var hero = card.querySelector('.hero svg');
+    hero.querySelector('.tw-icon').innerHTML =
+      icon(info[1], isDay).replace('<svg class="icon"', '<svg x="14" y="98" width="56" height="56"');
+    var tempEl = hero.querySelector('.tw-temp');
+    tempEl.textContent = temp(c.temperature_2m);
+    tempEl.classList.toggle('long', state.unit === 'K'); // "302 K" needs a smaller size to clear the label
+    hero.querySelector('.tw-cond').textContent = info[0];
+    hero.querySelector('.tw-hilo').textContent =
+      'H ' + temp(d.daily.temperature_2m_max[0]) + '\u2003L ' + temp(d.daily.temperature_2m_min[0]);
+
     // Hourly: start at the current local hour
     var hourKey = c.time.slice(0, 13) + ':00';
     var start = Math.max(0, d.hourly.time.indexOf(hourKey));
@@ -321,16 +319,14 @@
     }
 
     box.innerHTML =
-      '<div class="screen tempwidget' + (CRT_TIME_WIDGETS ? ' crt' : '') + '">' + tempScreenSVG(info[1], isDay, temp(c.temperature_2m)) + '</div>' +
-      '<p class="cond">' + info[0] + '</p>' +
-      '<p class="hilo">H: ' + temp(d.daily.temperature_2m_max[0]) + '&nbsp;&nbsp;L: ' + temp(d.daily.temperature_2m_min[0]) + '</p>' +
+      '<div class="screen forecast' + (CRT ? ' crt' : '') + '"><div class="screen-body">' +
       '<div class="details">' +
         '<div>Feels Like<b>' + temp(c.apparent_temperature) + '</b></div>' +
         '<div>Humidity<b>' + Math.round(c.relative_humidity_2m) + '%</b></div>' +
         '<div>Wind<b>' + wind(c.wind_speed_10m) + '</b></div>' +
       '</div>' +
       '<div class="hourly">' + hours + '</div>' +
-      '<ul class="daily">' + days + '</ul>';
+      '<ul class="daily">' + days + '</ul></div></div>';
   }
 
   function renderAll() { LOCATIONS.forEach(renderWeather); }
@@ -397,15 +393,6 @@
     b.addEventListener('click', function () { setUnit(b.getAttribute('data-unit')); });
   });
   refreshBtn.addEventListener('click', loadAll);
-
-  // Page dots follow horizontal scrolling on phones
-  cardsEl.addEventListener('scroll', function () {
-    var idx = Math.round(cardsEl.scrollLeft / cardsEl.clientWidth);
-    Array.prototype.forEach.call(dotsEl.children, function (b, i) {
-      b.classList.toggle('active', i === idx);
-      if (i === idx) b.setAttribute('aria-current', 'true'); else b.removeAttribute('aria-current');
-    });
-  }, { passive: true });
 
   // Refresh when returning to a tab that has been in the background
   var lastLoad = 0;
