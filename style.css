@@ -1,0 +1,464 @@
+/* ==========================================================================
+   Weather — early-2010s iOS 6 / Mac OS X Lion styling
+   ========================================================================== */
+
+*,
+*::before,
+*::after { box-sizing: border-box; }
+
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  color: #fff;
+  /* Dark linen, as in the iOS 5/6 Notification Center and multitasking tray */
+  background-color: #3c4047;
+  background-image:
+    repeating-linear-gradient(0deg, rgba(255,255,255,.035) 0 1px, transparent 1px 3px),
+    repeating-linear-gradient(90deg, rgba(0,0,0,.09) 0 1px, transparent 1px 4px),
+    repeating-linear-gradient(45deg, rgba(255,255,255,.02) 0 1px, transparent 1px 6px),
+    radial-gradient(ellipse at top, #4a4f57, #2b2e33);
+  padding: 32px 16px;
+}
+
+button { font: inherit; cursor: pointer; }
+
+/* ---------- Window (Mac OS X Lion) ---------- */
+
+.window {
+  max-width: 1120px;
+  margin: 0 auto;
+  border-radius: 6px 6px 5px 5px;
+  overflow: hidden;
+  background: #d8dce2;
+  box-shadow:
+    0 0 0 1px rgba(0,0,0,.55),
+    0 22px 50px rgba(0,0,0,.6),
+    inset 0 1px 0 rgba(255,255,255,.6);
+}
+
+.titlebar {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 48px;
+  padding: 8px 12px;
+  background: linear-gradient(#ececec, #d3d3d3 50%, #bebebe);
+  border-bottom: 1px solid #7b7b7b;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.9);
+}
+
+.traffic { display: flex; gap: 8px; }
+
+.light {
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  box-shadow:
+    inset 0 1px 1px rgba(255,255,255,.8),
+    inset 0 -2px 3px rgba(0,0,0,.25),
+    0 0 0 1px rgba(0,0,0,.35),
+    0 1px 0 rgba(255,255,255,.6);
+}
+.light.red    { background: radial-gradient(circle at 50% 30%, #ffb3a8, #f0473b 55%, #b3190e); }
+.light.yellow { background: radial-gradient(circle at 50% 30%, #fff1ad, #f6b42a 55%, #b77805); }
+.light.green  { background: radial-gradient(circle at 50% 30%, #d8ffb3, #5fc434 55%, #2d7c10); }
+
+.title {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  margin: 0;
+  font-size: 14px;
+  font-weight: normal;
+  color: #3a3a3a;
+  text-shadow: 0 1px 0 rgba(255,255,255,.8);
+  pointer-events: none;
+}
+
+.toolbar { display: flex; align-items: center; gap: 8px; }
+
+/* iOS 6 segmented control */
+.segmented {
+  display: inline-flex;
+  border-radius: 5px;
+  box-shadow: 0 1px 0 rgba(255,255,255,.6);
+}
+.segmented button {
+  min-width: 42px;
+  padding: 4px 10px;
+  font-size: 13px;
+  font-weight: bold;
+  color: #4a4a4a;
+  text-shadow: 0 1px 0 rgba(255,255,255,.9);
+  background: linear-gradient(#fdfdfd, #d9d9d9);
+  border: 1px solid #7f7f7f;
+}
+.segmented button:first-child { border-radius: 5px 0 0 5px; }
+.segmented button:last-child  { border-radius: 0 5px 5px 0; border-left: 0; }
+.segmented button.active {
+  color: #fff;
+  text-shadow: 0 -1px 0 rgba(0,0,0,.45);
+  background: linear-gradient(#6d9ee9, #3b76d6 50%, #2462c8);
+  border-color: #1d4c9a;
+  box-shadow: inset 0 1px 3px rgba(0,0,0,.35);
+}
+
+.bar-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 27px;
+  color: #4a4a4a;
+  background: linear-gradient(#fdfdfd, #d9d9d9);
+  border: 1px solid #7f7f7f;
+  border-radius: 5px;
+  box-shadow: 0 1px 0 rgba(255,255,255,.6), inset 0 1px 0 #fff;
+}
+.bar-button:active { background: linear-gradient(#cfcfcf, #e8e8e8); }
+.bar-button.spinning svg { animation: spin .8s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ---------- Cards container ---------- */
+
+.cards {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 22px;
+  padding: 24px;
+  background:
+    repeating-linear-gradient(90deg, rgba(0,0,0,.025) 0 1px, transparent 1px 3px),
+    linear-gradient(#cdd3db, #b9c0ca);
+  box-shadow: inset 0 3px 6px rgba(0,0,0,.18);
+}
+
+/* ---------- Weather card (iOS 6 Weather) ---------- */
+
+.card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  padding: 18px 16px 12px;
+  border-radius: 12px;
+  overflow: hidden;
+  background: linear-gradient(#78bdf0, #3d86cf 55%, #2765ad);
+  border: 1px solid rgba(0,0,0,.45);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.55),
+    inset 0 0 0 1px rgba(255,255,255,.12),
+    0 4px 10px rgba(0,0,0,.35);
+  text-shadow: 0 -1px 0 rgba(0,0,0,.35), 0 1px 2px rgba(0,0,0,.25);
+}
+.card.night {
+  background: linear-gradient(#5c5f98, #363a73 55%, #1d2150);
+}
+
+/* Glossy highlight across the upper half */
+.card .gloss {
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 190px;
+  background: linear-gradient(rgba(255,255,255,.28), rgba(255,255,255,.04));
+  border-radius: 12px 12px 50% 50% / 12px 12px 26px 26px;
+  pointer-events: none;
+}
+
+.card > *:not(.gloss) { position: relative; }
+
+.card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.place h2 {
+  margin: 0;
+  font-size: 22px;
+  font-weight: bold;
+  letter-spacing: -.2px;
+}
+.place .region {
+  margin: 2px 0 0;
+  font-size: 12px;
+  color: rgba(255,255,255,.92);
+  text-shadow: 0 1px 2px rgba(0,0,0,.45);
+}
+.place .localtime {
+  margin: 8px 0 0;
+  font-size: 15px;
+  font-weight: bold;
+}
+.place .localdate {
+  margin: 1px 0 0;
+  font-size: 12px;
+  color: rgba(255,255,255,.92);
+  text-shadow: 0 1px 2px rgba(0,0,0,.45);
+}
+
+.clock {
+  flex: 0 0 auto;
+  width: 96px;
+  height: 96px;
+  filter: drop-shadow(0 3px 4px rgba(0,0,0,.4));
+}
+.clock svg { display: block; width: 100%; height: 100%; }
+.clock .num { font: bold 9.5px "Helvetica Neue", Helvetica, Arial, sans-serif; text-anchor: middle; dominant-baseline: central; }
+
+.now {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin-top: 10px;
+}
+.now .icon { width: 84px; height: 84px; }
+.temp {
+  font-size: 72px;
+  font-weight: 200;
+  line-height: 1;
+  letter-spacing: -3px;
+  text-shadow: 0 2px 3px rgba(0,0,0,.35);
+}
+
+.cond {
+  margin: 4px 0 0;
+  text-align: center;
+  font-size: 17px;
+  font-weight: bold;
+}
+.hilo {
+  margin: 2px 0 0;
+  text-align: center;
+  font-size: 14px;
+  color: rgba(255,255,255,.9);
+}
+
+.details {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  margin: 14px -16px 0;
+  padding: 8px 6px;
+  text-align: center;
+  font-size: 11px;
+  color: rgba(255,255,255,.8);
+  background: rgba(0,0,0,.14);
+  border-top: 1px solid rgba(0,0,0,.2);
+  border-bottom: 1px solid rgba(255,255,255,.15);
+}
+.details b { display: block; margin-top: 2px; font-size: 14px; color: #fff; }
+
+/* Hourly strip */
+.hourly {
+  display: flex;
+  gap: 2px;
+  margin: 0 -16px;
+  padding: 10px 10px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  background: rgba(0,0,0,.22);
+  border-bottom: 1px solid rgba(255,255,255,.15);
+  box-shadow: inset 0 2px 4px rgba(0,0,0,.2);
+}
+.hourly::-webkit-scrollbar { display: none; }
+.hour {
+  flex: 0 0 48px;
+  text-align: center;
+  font-size: 12px;
+}
+.hour .icon { width: 30px; height: 30px; margin: 4px auto; display: block; }
+.hour .t { font-size: 14px; font-weight: bold; }
+.hour.current .h { font-weight: bold; }
+
+/* Daily forecast list */
+.daily {
+  list-style: none;
+  margin: 6px 0 0;
+  padding: 0;
+}
+.daily li {
+  display: grid;
+  grid-template-columns: 1fr 32px 38px 38px;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 2px;
+  font-size: 15px;
+  border-bottom: 1px solid rgba(0,0,0,.18);
+  box-shadow: 0 1px 0 rgba(255,255,255,.12);
+}
+.daily li:last-child { border-bottom: 0; box-shadow: none; }
+.daily .d { font-weight: bold; }
+.daily .icon { width: 28px; height: 28px; }
+.daily .hi { text-align: right; font-weight: bold; }
+.daily .lo { text-align: right; color: rgba(255,255,255,.65); }
+
+.card .message {
+  margin: 30px 0;
+  text-align: center;
+  font-size: 15px;
+}
+.card .message button {
+  margin-top: 10px;
+  padding: 6px 16px;
+  font-weight: bold;
+  color: #fff;
+  text-shadow: 0 -1px 0 rgba(0,0,0,.4);
+  background: linear-gradient(#8aa0bd, #5a7599 50%, #4b6790);
+  border: 1px solid #2f4466;
+  border-radius: 6px;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.4), 0 1px 0 rgba(255,255,255,.2);
+}
+
+.skeleton {
+  display: inline-block;
+  height: 1em;
+  width: 3em;
+  border-radius: 4px;
+  background: rgba(255,255,255,.25);
+  animation: pulse 1.2s ease-in-out infinite;
+}
+@keyframes pulse { 50% { opacity: .4; } }
+
+/* ---------- Page dots (iOS page control) ---------- */
+
+.page-dots {
+  display: none;
+  justify-content: center;
+  gap: 10px;
+  padding: 10px 0 4px;
+  background: linear-gradient(#b9c0ca, #b3bac4);
+}
+.page-dots button {
+  width: 8px;
+  height: 8px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: rgba(0,0,0,.3);
+  box-shadow: 0 1px 0 rgba(255,255,255,.5);
+}
+.page-dots button.active { background: #fff; box-shadow: 0 0 0 1px rgba(0,0,0,.25), 0 1px 0 rgba(255,255,255,.5); }
+
+/* ---------- Status bar (bottom toolbar) ---------- */
+
+.statusbar {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 4px 16px;
+  padding: 7px 14px;
+  font-size: 11px;
+  color: #4a4a4a;
+  text-shadow: 0 1px 0 rgba(255,255,255,.75);
+  background: linear-gradient(#d6d6d6, #b3b3b3);
+  border-top: 1px solid #8a8a8a;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.7);
+}
+.statusbar a { color: #2a5bb0; text-decoration: none; }
+.statusbar a:hover { text-decoration: underline; }
+
+/* ---------- Medium screens ---------- */
+
+@media (max-width: 1000px) {
+  .cards { gap: 14px; padding: 16px; }
+  .clock { width: 80px; height: 80px; }
+  .temp { font-size: 60px; }
+  .now .icon { width: 70px; height: 70px; }
+}
+
+/* ---------- Phones: becomes an iOS 6 app with swipeable pages ---------- */
+
+@media (max-width: 760px) {
+  body { padding: 0; background: #1d2127; }
+
+  .window {
+    max-width: none;
+    min-height: 100vh;
+    border-radius: 0;
+    box-shadow: none;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* iOS 6 navigation bar */
+  .titlebar {
+    min-height: 44px;
+    padding: 6px 8px;
+    padding-top: max(6px, env(safe-area-inset-top));
+    background: linear-gradient(#b0bccd, #889bb3 50%, #6d84a2 51%, #6d83a1);
+    border-bottom: 1px solid #2d3642;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.45);
+  }
+  .traffic { display: none; }
+  .title {
+    position: static;
+    transform: none;
+    font-size: 20px;
+    font-weight: bold;
+    color: #fff;
+    text-shadow: 0 -1px 0 rgba(0,0,0,.5);
+  }
+  .segmented button,
+  .bar-button {
+    color: #fff;
+    text-shadow: 0 -1px 0 rgba(0,0,0,.45);
+    background: linear-gradient(#90a2bb, #6981a2 50%, #5b7598 51%, #5f7a9c);
+    border-color: #3a4c66;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.35);
+  }
+  .segmented button.active {
+    background: linear-gradient(#5d7599, #435d84);
+    box-shadow: inset 0 1px 4px rgba(0,0,0,.45);
+  }
+
+  .cards {
+    flex: 1;
+    display: flex;
+    gap: 0;
+    padding: 12px 0;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+    background:
+      repeating-linear-gradient(0deg, rgba(255,255,255,.035) 0 1px, transparent 1px 3px),
+      repeating-linear-gradient(90deg, rgba(0,0,0,.09) 0 1px, transparent 1px 4px),
+      #3c4047;
+    box-shadow: none;
+  }
+  .cards::-webkit-scrollbar { display: none; }
+  .card {
+    flex: 0 0 calc(100% - 32px);
+    margin: 0 16px;
+    scroll-snap-align: center;
+  }
+
+  .page-dots {
+    display: flex;
+    background: #3c4047;
+    padding: 4px 0 12px;
+  }
+  .page-dots button { background: rgba(255,255,255,.3); box-shadow: none; }
+  .page-dots button.active { background: #fff; box-shadow: none; }
+
+  .statusbar { padding-bottom: max(7px, env(safe-area-inset-bottom)); }
+
+  .clock { width: 88px; height: 88px; }
+  .temp { font-size: 68px; }
+}
+
+@media (max-width: 360px) {
+  .segmented button { min-width: 34px; padding: 4px 6px; }
+  .title { font-size: 17px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bar-button.spinning svg,
+  .skeleton { animation: none; }
+}

@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="description" content="Weather and world clock for Boca Raton, Fargo, and Guadalupe, powered by Open-Meteo.">
+  <meta name="theme-color" content="#6d84a2">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <title>Weather</title>
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="favicon.svg">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- Shared gradients used by every weather icon and clock -->
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+    <defs>
+      <radialGradient id="gSun" cx="40%" cy="35%" r="70%">
+        <stop offset="0" stop-color="#fff9c4"/>
+        <stop offset=".45" stop-color="#ffd52e"/>
+        <stop offset="1" stop-color="#f59a00"/>
+      </radialGradient>
+      <radialGradient id="gMoon" cx="35%" cy="30%" r="80%">
+        <stop offset="0" stop-color="#ffffff"/>
+        <stop offset="1" stop-color="#c9cfdb"/>
+      </radialGradient>
+      <linearGradient id="gCloud" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#ffffff"/>
+        <stop offset="1" stop-color="#c7d3e0"/>
+      </linearGradient>
+      <linearGradient id="gCloudDark" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#9aa6b4"/>
+        <stop offset="1" stop-color="#5d6773"/>
+      </linearGradient>
+      <linearGradient id="gDrop" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#9fd8ff"/>
+        <stop offset="1" stop-color="#1f7fd6"/>
+      </linearGradient>
+      <linearGradient id="gBolt" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#fff27a"/>
+        <stop offset="1" stop-color="#f5a300"/>
+      </linearGradient>
+      <linearGradient id="gBezel" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#fdfdfd"/>
+        <stop offset=".5" stop-color="#a9a9a9"/>
+        <stop offset="1" stop-color="#e6e6e6"/>
+      </linearGradient>
+      <linearGradient id="gFaceDay" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#ffffff"/>
+        <stop offset="1" stop-color="#e3e3e3"/>
+      </linearGradient>
+      <linearGradient id="gFaceNight" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#3a3a3a"/>
+        <stop offset="1" stop-color="#0c0c0c"/>
+      </linearGradient>
+    </defs>
+  </svg>
+
+  <div class="window">
+    <header class="titlebar">
+      <div class="traffic" aria-hidden="true">
+        <span class="light red"></span><span class="light yellow"></span><span class="light green"></span>
+      </div>
+      <h1 class="title">Weather</h1>
+      <div class="toolbar">
+        <div class="segmented" role="group" aria-label="Temperature unit">
+          <button type="button" data-unit="F" class="active">&deg;F</button>
+          <button type="button" data-unit="C">&deg;C</button>
+        </div>
+        <button type="button" class="bar-button" id="refresh" aria-label="Refresh weather">
+          <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M17.7 6.3A8 8 0 1 0 20 12h-2.2a5.8 5.8 0 1 1-1.7-4.1L13 11h7V4z" fill="currentColor"/></svg>
+        </button>
+      </div>
+    </header>
+
+    <main class="cards" id="cards" aria-live="polite"></main>
+
+    <nav class="page-dots" id="dots" aria-label="Locations"></nav>
+
+    <footer class="statusbar">
+      <span id="updated">Loading&hellip;</span>
+      <a href="https://open-meteo.com/" target="_blank" rel="noopener">Weather data by Open-Meteo.com</a>
+    </footer>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
