@@ -24,7 +24,7 @@ Weather data comes from the free [Open-Meteo](https://open-meteo.com/) API — n
 - °C (default) / °F / K toggle (remembered per browser)
 - Auto-refresh every 10 minutes, plus a manual refresh button
 - CRT effect can be disabled with `CRT` in `app.js`, or compared via `?crt=0` / `?crt=1`
-- Looks: `deep` (default), `soft`, `glass` (CRT variants), and `ios6` (a close copy of the iOS 6 Weather app, with the "i" button flipping each card to a settings back for units) — set `LOOK` in `app.js`, or preview with `?look=<name>`
+- Looks: `soft` (default), `deep`, `glass` (CRT variants), and `ios6` (a close copy of the iOS 6 Weather app, with the "i" button flipping each card to a settings back for units) — set `LOOK` in `app.js`, or preview with `?look=<name>`
 
 ## Files
 

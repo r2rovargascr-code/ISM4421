@@ -132,12 +132,12 @@
     return q ? q[1] === '1' : true;
   })();
 
-  // Look: 'deep' (dark CRT), 'soft' (lighter CRT), 'glass' (light, translucent CRT),
+  // Look: 'soft' (lighter CRT, default), 'deep' (dark CRT), 'glass' (light, translucent CRT),
   // or 'ios6' (a close copy of the iOS 6 Weather app, no CRT).
   // Preview any of them by appending ?look=<name> to the URL.
   var LOOK = (function () {
     var q = /[?&]look=(deep|soft|glass|ios6)/.exec(location.search);
-    return q ? q[1] : 'deep';
+    return q ? q[1] : 'soft';
   })();
   document.body.classList.add('look-' + LOOK);
   var IOS6 = LOOK === 'ios6';
