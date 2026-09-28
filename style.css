@@ -99,7 +99,8 @@ button { font: inherit; cursor: pointer; }
   border: 1px solid #7f7f7f;
 }
 .segmented button:first-child { border-radius: 5px 0 0 5px; }
-.segmented button:last-child  { border-radius: 0 5px 5px 0; border-left: 0; }
+.segmented button + button { border-left: 0; }
+.segmented button:last-child  { border-radius: 0 5px 5px 0; }
 .segmented button.active {
   color: #fff;
   text-shadow: 0 -1px 0 rgba(0,0,0,.45);
@@ -190,9 +191,9 @@ button { font: inherit; cursor: pointer; }
   color: rgba(255,255,255,.92);
   text-shadow: 0 1px 2px rgba(0,0,0,.45);
 }
-/* ---------- Time widget (minimal, monochrome) ---------- */
+/* ---------- Screens: time widget + temperature (minimal, monochrome) ---------- */
 
-.timewidget {
+.screen {
   --phosphor: #e7eeec;
   margin-top: 12px;
   padding: 4px 6px;
@@ -203,22 +204,22 @@ button { font: inherit; cursor: pointer; }
   border: 1px solid rgba(0,0,0,.65);
   box-shadow: inset 0 1px 4px rgba(0,0,0,.7), 0 1px 0 rgba(255,255,255,.25);
 }
-.timewidget svg { display: block; width: 100%; height: auto; overflow: visible; }
-.timewidget .tw-time {
+.screen > svg { display: block; width: 100%; height: auto; overflow: visible; }
+.screen .tw-time {
   font: 300 38px "Helvetica Neue", Helvetica, Arial, sans-serif;
   font-variant-numeric: tabular-nums;
   letter-spacing: .5px;
 }
-.timewidget .tw-time .ap { font-size: 15px; font-weight: 400; letter-spacing: 1px; }
-.timewidget .tw-date {
+.screen .tw-time .ap { font-size: 15px; font-weight: 400; letter-spacing: 1px; }
+.screen .tw-date {
   font: 400 12px "Helvetica Neue", Helvetica, Arial, sans-serif;
   letter-spacing: .6px;
   text-transform: uppercase;
   fill-opacity: .55;
 }
 
-/* CRT treatment — applies only to the time widgets */
-.timewidget.crt {
+/* CRT treatment — applies only to the time and temperature screens */
+.screen.crt {
   position: relative;
   overflow: hidden;
   padding: 6px 8px;
@@ -234,7 +235,7 @@ button { font: inherit; cursor: pointer; }
   margin: 16px 5px 4px;
 }
 /* Scanlines + vignette */
-.timewidget.crt::before {
+.screen.crt::before {
   content: "";
   position: absolute;
   inset: 0;
@@ -245,7 +246,7 @@ button { font: inherit; cursor: pointer; }
     repeating-linear-gradient(0deg, rgba(0,0,0,.32) 0 1px, transparent 1px 3px);
 }
 /* Curved glass reflection */
-.timewidget.crt::after {
+.screen.crt::after {
   content: "";
   position: absolute;
   inset: 3px 10% 55% 10%;
@@ -253,7 +254,7 @@ button { font: inherit; cursor: pointer; }
   pointer-events: none;
   background: linear-gradient(rgba(255,255,255,.09), rgba(255,255,255,0));
 }
-.timewidget.crt svg { animation: crt-flicker 4s steps(1) infinite; }
+.screen.crt > svg { animation: crt-flicker 4s steps(1) infinite; }
 @keyframes crt-flicker {
   0%, 100% { opacity: 1; }
   47% { opacity: .94; }
@@ -261,24 +262,15 @@ button { font: inherit; cursor: pointer; }
   82% { opacity: .97; }
 }
 
-.now {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  margin-top: 10px;
+.screen .tw-temp {
+  font: 200 66px "Helvetica Neue", Helvetica, Arial, sans-serif;
+  letter-spacing: -2px;
 }
-.now .icon { width: 84px; height: 84px; }
-.temp {
-  font-size: 72px;
-  font-weight: 200;
-  line-height: 1;
-  letter-spacing: -3px;
-  text-shadow: 0 2px 3px rgba(0,0,0,.35);
-}
+.screen.tempwidget { margin-top: 14px; }
+.screen.crt.tempwidget { margin-top: 18px; }
 
 .cond {
-  margin: 4px 0 0;
+  margin: 8px 0 0;
   text-align: center;
   font-size: 17px;
   font-weight: bold;
@@ -334,7 +326,7 @@ button { font: inherit; cursor: pointer; }
 }
 .daily li {
   display: grid;
-  grid-template-columns: 1fr 32px 38px 38px;
+  grid-template-columns: 1fr 32px 46px 46px;
   align-items: center;
   gap: 6px;
   padding: 5px 2px;
@@ -413,31 +405,31 @@ button { font: inherit; cursor: pointer; }
 .statusbar a { color: #2a5bb0; text-decoration: none; }
 .statusbar a:hover { text-decoration: underline; }
 
-/* ---------- Desktop: time widget screen takes the card's own colors ---------- */
+/* ---------- Desktop: screens take the card's own colors ---------- */
 /* Phones (max-width: 760px) keep the dark screen. */
 
 @media (min-width: 761px) {
-  .timewidget,
-  .timewidget.crt {
+  .screen,
+  .screen.crt {
     background: radial-gradient(ellipse at 50% 45%, #5aa3e3 0%, #3479c2 60%, #1f548f 100%);
     border-color: rgba(0,0,0,.45);
   }
-  .card.night .timewidget,
-  .card.night .timewidget.crt {
+  .card.night .screen,
+  .card.night .screen.crt {
     background: radial-gradient(ellipse at 50% 45%, #5a5e9c 0%, #373b76 60%, #1c1f4a 100%);
   }
-  .timewidget {
+  .screen {
     box-shadow: inset 0 1px 4px rgba(0,0,0,.4), 0 1px 0 rgba(255,255,255,.25);
   }
-  .timewidget .tw-date { fill-opacity: .78; }
-  .timewidget.crt {
+  .screen .tw-date { fill-opacity: .78; }
+  .screen.crt {
     box-shadow:
       0 0 0 4px rgba(0,0,0,.28),
       0 0 0 5px rgba(0,0,0,.45),
       0 1px 0 5px rgba(255,255,255,.2),
       inset 0 0 18px rgba(0,0,0,.45);
   }
-  .timewidget.crt::before {
+  .screen.crt::before {
     background:
       radial-gradient(ellipse at center, transparent 55%, rgba(0,0,0,.35) 88%, rgba(0,0,0,.6) 100%),
       repeating-linear-gradient(0deg, rgba(0,0,0,.16) 0 1px, transparent 1px 3px);
@@ -448,8 +440,6 @@ button { font: inherit; cursor: pointer; }
 
 @media (max-width: 1000px) {
   .cards { gap: 14px; padding: 16px; }
-  .temp { font-size: 60px; }
-  .now .icon { width: 70px; height: 70px; }
 }
 
 /* ---------- Phones: becomes an iOS 6 app with swipeable pages ---------- */
@@ -529,7 +519,6 @@ button { font: inherit; cursor: pointer; }
 
   .statusbar { padding-bottom: max(7px, env(safe-area-inset-bottom)); }
 
-  .temp { font-size: 68px; }
 }
 
 @media (max-width: 360px) {
@@ -540,5 +529,5 @@ button { font: inherit; cursor: pointer; }
 @media (prefers-reduced-motion: reduce) {
   .bar-button.spinning svg,
   .skeleton,
-  .timewidget.crt svg { animation: none; }
+  .screen.crt > svg { animation: none; }
 }

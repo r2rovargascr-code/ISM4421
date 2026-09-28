@@ -17,10 +17,10 @@ Weather data comes from the free [Open-Meteo](https://open-meteo.com/) API — n
 
 ## Features
 
-- Current conditions, feels-like temperature, humidity, and wind
+- Current temperature on a CRT-style screen, plus feels-like, humidity, and wind
 - 12-hour hourly strip and 6-day forecast
-- Minimal monochrome analog + digital clock per city, updated every second, with an optional CRT look (curvature, vignette, scanlines, glow) — toggle `CRT_TIME_WIDGETS` in `app.js`, or compare with `?crt=0` / `?crt=1`
-- °F / °C toggle (remembered per browser)
+- Minimal monochrome analog + digital clock per city, updated every second, with an optional CRT look (curvature, vignette, scanlines, glow) — toggle `CRT_TIME_WIDGETS` in `app.js` (also controls the temperature screen), or compare with `?crt=0` / `?crt=1`
+- °C (default) / °F / K toggle (remembered per browser)
 - Auto-refresh every 10 minutes, plus a manual refresh button
 
 ## Files

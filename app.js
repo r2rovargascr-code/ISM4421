@@ -21,7 +21,10 @@
   /* ---------- Unit preference (per browser, optional) ---------- */
 
   function readUnit() {
-    try { return localStorage.getItem('unit') === 'C' ? 'C' : 'F'; } catch (e) { return 'F'; }
+    try {
+      var u = localStorage.getItem('unit');
+      return u === 'F' || u === 'K' ? u : 'C';
+    } catch (e) { return 'C'; }
   }
   function saveUnit(u) {
     try { localStorage.setItem('unit', u); } catch (e) { /* storage unavailable */ }
@@ -33,6 +36,7 @@
   // unit toggle is instant and needs no extra request.
   function temp(c) {
     if (c == null || isNaN(c)) return '--';
+    if (state.unit === 'K') return Math.round(c + 273.15) + '\u2009K'; // kelvin takes no degree sign
     return Math.round(state.unit === 'F' ? c * 9 / 5 + 32 : c) + '°';
   }
   function wind(kmh) {
@@ -121,7 +125,7 @@
 
   /* ---------- Time widget: minimal monochrome clock + digital readout ---------- */
 
-  // Set to false for the plain monochrome widget without the CRT treatment.
+  // Set to false for plain screens without the CRT treatment (time and temperature).
   // For side-by-side comparison, append ?crt=0 or ?crt=1 to the URL.
   var CRT_TIME_WIDGETS = (function () {
     var q = /[?&]crt=([01])/.exec(location.search);
@@ -153,6 +157,19 @@
         '<circle cx="' + c + '" cy="' + y + '" r="2.4" fill="currentColor"/>' +
         '<text class="tw-time" x="112" y="54" fill="currentColor"><tspan class="hm"></tspan><tspan class="ap" dx="4"></tspan></text>' +
         '<text class="tw-date" x="113" y="76" fill="currentColor"></text>' +
+      '</g>' +
+    '</svg>';
+  }
+
+  // Current conditions on a CRT screen: weather icon + large temperature.
+  // Shares the time widget's 300×100 space so the same CRT filter applies.
+  function tempScreenSVG(kind, isDay, value) {
+    var ic = icon(kind, isDay).replace('<svg class="icon"', '<svg x="26" y="12" width="76" height="76"');
+    return '<svg viewBox="0 0 ' + TW.w + ' ' + TW.h + '" role="img" aria-label="Current temperature ' + value + '">' +
+      '<g' + (CRT_TIME_WIDGETS ? ' filter="url(#crtWarp)"' : '') + '>' +
+        '<rect width="' + TW.w + '" height="' + TW.h + '" fill="#000" fill-opacity="0"/>' +
+        ic +
+        '<text class="tw-temp" x="196" y="73" text-anchor="middle" fill="currentColor">' + value + '</text>' +
       '</g>' +
     '</svg>';
   }
@@ -238,7 +255,7 @@
         '<div class="card-top">' +
           '<div class="place"><h2>' + loc.name + '</h2><p class="region">' + loc.region + '</p></div>' +
         '</div>' +
-        '<div class="timewidget' + (CRT_TIME_WIDGETS ? ' crt' : '') + '">' + timeWidgetSVG() + '</div>' +
+        '<div class="screen timewidget' + (CRT_TIME_WIDGETS ? ' crt' : '') + '">' + timeWidgetSVG() + '</div>' +
         '<div class="weather"><p class="message"><span class="skeleton"></span></p></div>' +
       '</article>';
     }).join('');
@@ -304,7 +321,7 @@
     }
 
     box.innerHTML =
-      '<div class="now">' + icon(info[1], isDay) + '<div class="temp">' + temp(c.temperature_2m) + '</div></div>' +
+      '<div class="screen tempwidget' + (CRT_TIME_WIDGETS ? ' crt' : '') + '">' + tempScreenSVG(info[1], isDay, temp(c.temperature_2m)) + '</div>' +
       '<p class="cond">' + info[0] + '</p>' +
       '<p class="hilo">H: ' + temp(d.daily.temperature_2m_max[0]) + '&nbsp;&nbsp;L: ' + temp(d.daily.temperature_2m_min[0]) + '</p>' +
       '<div class="details">' +
