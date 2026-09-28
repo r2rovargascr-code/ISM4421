@@ -404,11 +404,9 @@ button { font: inherit; cursor: pointer; }
 /* Soft: same tube, lighter glass, gentler vignette and scanlines */
 .look-soft .screen.crt {
   background: radial-gradient(ellipse at 50% 45%, #86c1f0 0%, #5898da 60%, #3a76b8 100%);
-  box-shadow:
-    0 0 0 4px rgba(0,0,0,.14),
-    0 0 0 5px rgba(0,0,0,.28),
-    0 1px 0 5px rgba(255,255,255,.28),
-    inset 0 0 14px rgba(0,0,0,.2);
+  /* No frame: the screen blends straight into the card */
+  border-color: transparent;
+  box-shadow: inset 0 0 14px rgba(0,0,0,.2);
 }
 .look-soft .card.night .screen.crt {
   background: radial-gradient(ellipse at 50% 45%, #8488c4 0%, #5d61a0 60%, #41457f 100%);
