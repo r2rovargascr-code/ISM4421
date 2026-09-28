@@ -119,30 +119,70 @@
     return '<svg class="icon" viewBox="0 0 64 64" aria-hidden="true">' + body + '</svg>';
   }
 
-  /* ---------- Analog clock (iOS 6 Clock app) ---------- */
+  /* ---------- Time widget: minimal monochrome clock + digital readout ---------- */
 
-  function clockSVG() {
-    var ticks = '', nums = '';
-    for (var i = 0; i < 60; i++) {
-      var major = i % 5 === 0;
-      ticks += '<line x1="50" y1="' + (major ? 7.5 : 7.5) + '" x2="50" y2="' + (major ? 12 : 9.5) +
-        '" stroke-width="' + (major ? 1.6 : .6) + '" transform="rotate(' + i * 6 + ' 50 50)"/>';
+  // Set to false for the plain monochrome widget without the CRT treatment.
+  // For side-by-side comparison, append ?crt=0 or ?crt=1 to the URL.
+  var CRT_TIME_WIDGETS = (function () {
+    var q = /[?&]crt=([01])/.exec(location.search);
+    return q ? q[1] === '1' : true;
+  })();
+
+  // Widget coordinate space (every time widget shares it, so one CRT filter fits all)
+  var TW = { w: 300, h: 100, cx: 52, cy: 50 };
+
+  function timeWidgetSVG() {
+    var ticks = '';
+    for (var i = 0; i < 12; i++) {
+      var major = i % 3 === 0;
+      ticks += '<line x1="' + TW.cx + '" y1="' + (TW.cy - 37) + '" x2="' + TW.cx + '" y2="' + (TW.cy - (major ? 30 : 33)) +
+        '" stroke-width="' + (major ? 1.8 : 1) + '" transform="rotate(' + i * 30 + ' ' + TW.cx + ' ' + TW.cy + ')"/>';
     }
-    for (var h = 1; h <= 12; h++) {
-      var a = h * 30 * Math.PI / 180;
-      nums += '<text class="num" x="' + (50 + 30 * Math.sin(a)).toFixed(2) + '" y="' + (50 - 30 * Math.cos(a)).toFixed(2) + '">' + h + '</text>';
+    var c = TW.cx, y = TW.cy;
+    return '<svg viewBox="0 0 ' + TW.w + ' ' + TW.h + '" role="img">' +
+      '<g' + (CRT_TIME_WIDGETS ? ' filter="url(#crtWarp)"' : '') + '>' +
+        // Transparent backing so the filter region always spans the whole screen
+        '<rect width="' + TW.w + '" height="' + TW.h + '" fill="#000" fill-opacity="0"/>' +
+        '<circle cx="' + c + '" cy="' + y + '" r="40" fill="none" stroke="currentColor" stroke-opacity=".3" stroke-width="1"/>' +
+        '<g stroke="currentColor" stroke-linecap="round">' + ticks + '</g>' +
+        '<g stroke="currentColor" stroke-linecap="round">' +
+          '<line class="hand-h" x1="' + c + '" y1="' + y + '" x2="' + c + '" y2="' + (y - 19) + '" stroke-width="3.2"/>' +
+          '<line class="hand-m" x1="' + c + '" y1="' + y + '" x2="' + c + '" y2="' + (y - 29) + '" stroke-width="2"/>' +
+          '<line class="hand-s" x1="' + c + '" y1="' + (y + 7) + '" x2="' + c + '" y2="' + (y - 34) + '" stroke-width=".8" stroke-opacity=".75"/>' +
+        '</g>' +
+        '<circle cx="' + c + '" cy="' + y + '" r="2.4" fill="currentColor"/>' +
+        '<text class="tw-time" x="112" y="54" fill="currentColor"><tspan class="hm"></tspan><tspan class="ap" dx="4"></tspan></text>' +
+        '<text class="tw-date" x="113" y="76" fill="currentColor"></text>' +
+      '</g>' +
+    '</svg>';
+  }
+
+  // Builds the barrel-distortion map for the CRT filter: each pixel encodes how far
+  // to pull the image toward the edges, so content bulges like curved glass.
+  function buildCrtMap() {
+    if (!CRT_TIME_WIDGETS) return;
+    var feImage = document.getElementById('crtMap');
+    if (!feImage) return;
+    var W = TW.w, H = TW.h, maxX = 7, maxY = 5, scale = 20;
+    var cv = document.createElement('canvas');
+    cv.width = W; cv.height = H;
+    var ctx = cv.getContext('2d');
+    var img = ctx.createImageData(W, H);
+    for (var py = 0; py < H; py++) {
+      for (var px = 0; px < W; px++) {
+        var nx = (px + .5) / W * 2 - 1, ny = (py + .5) / H * 2 - 1;
+        var r2 = (nx * nx + ny * ny) / 2;
+        var k = (py * W + px) * 4;
+        img.data[k]     = Math.round(255 * (.5 + maxX * nx * r2 / scale));
+        img.data[k + 1] = Math.round(255 * (.5 + maxY * ny * r2 / scale));
+        img.data[k + 2] = 128;
+        img.data[k + 3] = 255;
+      }
     }
-    return '<svg viewBox="0 0 100 100" role="img">' +
-      '<circle cx="50" cy="50" r="49" fill="url(#gBezel)" stroke="#6e6e6e" stroke-width=".8"/>' +
-      '<circle class="face" cx="50" cy="50" r="45" fill="url(#gFaceDay)" stroke="#8a8a8a" stroke-width=".6"/>' +
-      '<g class="ticks" stroke="#222">' + ticks + '</g>' +
-      '<g class="nums" fill="#111">' + nums + '</g>' +
-      '<line class="hand-h" x1="50" y1="54" x2="50" y2="27" stroke="#111" stroke-width="3.6" stroke-linecap="round"/>' +
-      '<line class="hand-m" x1="50" y1="56" x2="50" y2="15" stroke="#111" stroke-width="2.4" stroke-linecap="round"/>' +
-      '<line class="hand-s" x1="50" y1="60" x2="50" y2="11" stroke="#d61f1f" stroke-width="1"/>' +
-      '<circle cx="50" cy="50" r="2.6" fill="#d61f1f"/><circle cx="50" cy="50" r="1" fill="#fff"/>' +
-      '<ellipse cx="50" cy="28" rx="34" ry="18" fill="#fff" opacity=".12"/>' +
-      '</svg>';
+    ctx.putImageData(img, 0, 0);
+    var url = cv.toDataURL('image/png');
+    feImage.setAttribute('href', url);
+    feImage.setAttributeNS('http://www.w3.org/1999/xlink', 'xlink:href', url);
   }
 
   var formatters = {};
@@ -170,24 +210,19 @@
       if (!card) return;
       var t = timeParts(loc.tz, now);
       var h = t.hour % 24, m = t.minute, s = t.second;
-      var svg = card.querySelector('.clock svg');
-      svg.querySelector('.hand-h').setAttribute('transform', 'rotate(' + ((h % 12) * 30 + m * 0.5) + ' 50 50)');
-      svg.querySelector('.hand-m').setAttribute('transform', 'rotate(' + (m * 6 + s * 0.1) + ' 50 50)');
-      svg.querySelector('.hand-s').setAttribute('transform', 'rotate(' + s * 6 + ' 50 50)');
-
-      // White face by day, black face by night — as in iOS 6 World Clock
-      var day = h >= 6 && h < 18;
-      svg.querySelector('.face').setAttribute('fill', day ? 'url(#gFaceDay)' : 'url(#gFaceNight)');
-      svg.querySelector('.ticks').setAttribute('stroke', day ? '#222' : '#eee');
-      svg.querySelector('.nums').setAttribute('fill', day ? '#111' : '#f4f4f4');
-      svg.querySelector('.hand-h').setAttribute('stroke', day ? '#111' : '#fff');
-      svg.querySelector('.hand-m').setAttribute('stroke', day ? '#111' : '#fff');
+      var svg = card.querySelector('.timewidget svg');
+      var pivot = ' ' + TW.cx + ' ' + TW.cy + ')';
+      svg.querySelector('.hand-h').setAttribute('transform', 'rotate(' + ((h % 12) * 30 + m * 0.5) + pivot);
+      svg.querySelector('.hand-m').setAttribute('transform', 'rotate(' + (m * 6 + s * 0.1) + pivot);
+      svg.querySelector('.hand-s').setAttribute('transform', 'rotate(' + s * 6 + pivot);
 
       var timeText = fmt(loc.tz, 'time', { hour: 'numeric', minute: '2-digit' }).format(now);
-      svg.setAttribute('aria-label', 'Local time in ' + loc.name + ': ' + timeText);
-      card.querySelector('.localtime').textContent = timeText;
-      card.querySelector('.localdate').textContent =
+      var split = timeText.split(/\s+/);
+      svg.querySelector('.hm').textContent = split[0];
+      svg.querySelector('.ap').textContent = split[1] || '';
+      svg.querySelector('.tw-date').textContent =
         fmt(loc.tz, 'date', { weekday: 'long', month: 'short', day: 'numeric' }).format(now);
+      svg.setAttribute('aria-label', 'Local time in ' + loc.name + ': ' + timeText);
     });
   }
 
@@ -201,10 +236,9 @@
       return '<article class="card" id="card-' + loc.id + '" aria-label="' + loc.name + '">' +
         '<div class="gloss"></div>' +
         '<div class="card-top">' +
-          '<div class="place"><h2>' + loc.name + '</h2><p class="region">' + loc.region + '</p>' +
-          '<p class="localtime">&nbsp;</p><p class="localdate">&nbsp;</p></div>' +
-          '<div class="clock">' + clockSVG() + '</div>' +
+          '<div class="place"><h2>' + loc.name + '</h2><p class="region">' + loc.region + '</p></div>' +
         '</div>' +
+        '<div class="timewidget' + (CRT_TIME_WIDGETS ? ' crt' : '') + '">' + timeWidgetSVG() + '</div>' +
         '<div class="weather"><p class="message"><span class="skeleton"></span></p></div>' +
       '</article>';
     }).join('');
@@ -364,6 +398,7 @@
 
   /* ---------- Start ---------- */
 
+  buildCrtMap();
   buildShells();
   setUnit(state.unit);
   tick();

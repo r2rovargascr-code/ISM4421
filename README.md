@@ -10,8 +10,8 @@ A static weather app with live analog clocks for:
 
 Styled after early-2010s Apple software: a Mac OS X Lion window on desktop
 (traffic-light buttons, gradient toolbar, linen backdrop) and an iOS 6 app on
-phones (navigation bar, glossy weather cards, swipeable pages with page dots,
-white/black clock faces for day/night).
+phones (navigation bar, glossy weather cards, swipeable pages
+and page dots).
 
 Weather data comes from the free [Open-Meteo](https://open-meteo.com/) API — no API key required.
 
@@ -19,7 +19,7 @@ Weather data comes from the free [Open-Meteo](https://open-meteo.com/) API — n
 
 - Current conditions, feels-like temperature, humidity, and wind
 - 12-hour hourly strip and 6-day forecast
-- Analog and digital local time for each city, updated every second
+- Minimal monochrome analog + digital clock per city, updated every second, with an optional CRT look (curvature, vignette, scanlines, glow) — toggle `CRT_TIME_WIDGETS` in `app.js`, or compare with `?crt=0` / `?crt=1`
 - °F / °C toggle (remembered per browser)
 - Auto-refresh every 10 minutes, plus a manual refresh button
 
