@@ -413,6 +413,37 @@ button { font: inherit; cursor: pointer; }
 .statusbar a { color: #2a5bb0; text-decoration: none; }
 .statusbar a:hover { text-decoration: underline; }
 
+/* ---------- Desktop: time widget screen takes the card's own colors ---------- */
+/* Phones (max-width: 760px) keep the dark screen. */
+
+@media (min-width: 761px) {
+  .timewidget,
+  .timewidget.crt {
+    background: radial-gradient(ellipse at 50% 45%, #5aa3e3 0%, #3479c2 60%, #1f548f 100%);
+    border-color: rgba(0,0,0,.45);
+  }
+  .card.night .timewidget,
+  .card.night .timewidget.crt {
+    background: radial-gradient(ellipse at 50% 45%, #5a5e9c 0%, #373b76 60%, #1c1f4a 100%);
+  }
+  .timewidget {
+    box-shadow: inset 0 1px 4px rgba(0,0,0,.4), 0 1px 0 rgba(255,255,255,.25);
+  }
+  .timewidget .tw-date { fill-opacity: .78; }
+  .timewidget.crt {
+    box-shadow:
+      0 0 0 4px rgba(0,0,0,.28),
+      0 0 0 5px rgba(0,0,0,.45),
+      0 1px 0 5px rgba(255,255,255,.2),
+      inset 0 0 18px rgba(0,0,0,.45);
+  }
+  .timewidget.crt::before {
+    background:
+      radial-gradient(ellipse at center, transparent 55%, rgba(0,0,0,.35) 88%, rgba(0,0,0,.6) 100%),
+      repeating-linear-gradient(0deg, rgba(0,0,0,.16) 0 1px, transparent 1px 3px);
+  }
+}
+
 /* ---------- Medium screens ---------- */
 
 @media (max-width: 1000px) {
