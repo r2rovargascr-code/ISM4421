@@ -132,6 +132,14 @@
     return q ? q[1] === '1' : true;
   })();
 
+  // CRT style: 'deep' (dark tube), 'soft' (lighter tube), or 'glass' (light, translucent).
+  // Preview any of them by appending ?look=deep, ?look=soft or ?look=glass to the URL.
+  var LOOK = (function () {
+    var q = /[?&]look=(deep|soft|glass)/.exec(location.search);
+    return q ? q[1] : 'deep';
+  })();
+  document.body.classList.add('look-' + LOOK);
+
   // Coordinate space of the main screen (every card shares it, so one CRT filter fits all)
   var TW = { w: 300, h: 160, cx: 50, cy: 46 };
 

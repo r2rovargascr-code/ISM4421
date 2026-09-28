@@ -399,6 +399,51 @@ button { font: inherit; cursor: pointer; }
     repeating-linear-gradient(0deg, rgba(0,0,0,.16) 0 1px, transparent 1px 3px);
 }
 
+/* ---------- Alternative CRT looks (selected in app.js / ?look=) ---------- */
+
+/* Soft: same tube, lighter glass, gentler vignette and scanlines */
+.look-soft .screen.crt {
+  background: radial-gradient(ellipse at 50% 45%, #86c1f0 0%, #5898da 60%, #3a76b8 100%);
+  box-shadow:
+    0 0 0 4px rgba(0,0,0,.14),
+    0 0 0 5px rgba(0,0,0,.28),
+    0 1px 0 5px rgba(255,255,255,.28),
+    inset 0 0 14px rgba(0,0,0,.2);
+}
+.look-soft .card.night .screen.crt {
+  background: radial-gradient(ellipse at 50% 45%, #8488c4 0%, #5d61a0 60%, #41457f 100%);
+}
+.look-soft .screen.crt::before {
+  background:
+    radial-gradient(ellipse at center, transparent 65%, rgba(0,0,0,.14) 90%, rgba(0,0,0,.28) 100%),
+    repeating-linear-gradient(0deg, rgba(0,0,0,.08) 0 1px, transparent 1px 3px);
+}
+.look-soft .screen.crt::after { background: linear-gradient(rgba(255,255,255,.14), rgba(255,255,255,0)); }
+
+/* Glass: light, translucent panel over the card color; the CRT is a hint */
+.look-glass .screen.crt,
+.look-glass .card.night .screen.crt {
+  background: linear-gradient(rgba(255,255,255,.24), rgba(255,255,255,.08));
+  border: 1px solid rgba(255,255,255,.5);
+  box-shadow:
+    0 0 0 4px rgba(255,255,255,.12),
+    0 0 0 5px rgba(0,0,0,.14),
+    0 3px 8px rgba(0,0,0,.18),
+    inset 0 1px 0 rgba(255,255,255,.55),
+    inset 0 0 14px rgba(255,255,255,.14);
+}
+.look-glass .screen.crt::before {
+  background:
+    radial-gradient(ellipse at center, transparent 72%, rgba(0,0,0,.1) 100%),
+    repeating-linear-gradient(0deg, rgba(0,0,0,.045) 0 1px, transparent 1px 3px);
+}
+.look-glass .screen.crt::after { background: linear-gradient(rgba(255,255,255,.26), rgba(255,255,255,0)); }
+.look-glass .screen .tw-date,
+.look-glass .screen .tw-hilo { fill-opacity: .9; }
+.look-glass .screen.crt.forecast .screen-body {
+  text-shadow: 0 0 4px rgba(255,255,255,.35), 0 1px 2px rgba(0,0,0,.25);
+}
+
 /* ---------- Medium screens ---------- */
 
 @media (max-width: 1000px) {
