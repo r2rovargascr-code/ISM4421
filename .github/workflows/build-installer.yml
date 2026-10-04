@@ -25,6 +25,19 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt pyinstaller
 
+      - name: Window check from source (diagnostic)
+        continue-on-error: true
+        shell: pwsh
+        run: |
+          $p = Start-Process -FilePath python -ArgumentList "-m","spotdl_lava","--demo" -PassThru `
+                 -RedirectStandardOutput src-out.txt -RedirectStandardError src-err.txt
+          Start-Sleep -Seconds 25
+          $proc = Get-Process -Id $p.Id -ErrorAction SilentlyContinue
+          "process running: $([bool]$proc)  exit code: $($p.ExitCode)"
+          "----- stderr -----"; Get-Content src-err.txt -Tail 80
+          "----- stdout -----"; Get-Content src-out.txt -Tail 40
+          if ($proc) { Stop-Process -Id $p.Id -Force }
+
       - name: Build app
         run: python packaging/build.py
 
@@ -43,12 +56,18 @@ jobs:
         run: |
           $log = Join-Path $env:LOCALAPPDATA "spotDL Lava\spotdl-lava.log"
           Remove-Item $log -ErrorAction SilentlyContinue
-          $p = Start-Process -FilePath "dist\spotDL Lava\spotDL Lava.exe" -ArgumentList "--demo","--debug" -PassThru
+          # .NET errors from the window engine go to the native stderr, so capture it
+          $p = Start-Process -FilePath "dist\spotDL Lava\spotDL Lava.exe" -ArgumentList "--demo" -PassThru `
+                 -RedirectStandardOutput win-out.txt -RedirectStandardError win-err.txt
           Start-Sleep -Seconds 25
           $proc = Get-Process -Id $p.Id -ErrorAction SilentlyContinue
           "process running: $([bool]$proc)  exit code: $($p.ExitCode)  window title: '$($proc.MainWindowTitle)'"
           "----- log -----"
           if (Test-Path $log) { Get-Content $log -Tail 120 } else { "no log file" }
+          "----- stderr -----"
+          Get-Content win-err.txt -ErrorAction SilentlyContinue
+          "----- stdout -----"
+          Get-Content win-out.txt -ErrorAction SilentlyContinue
           "---------------"
           if ($proc) { Stop-Process -Id $p.Id -Force }
           $text = if (Test-Path $log) { Get-Content $log -Raw } else { "" }
