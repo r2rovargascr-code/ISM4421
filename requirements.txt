@@ -1,0 +1,2 @@
+spotdl>=4.2
+pywebview>=5.0

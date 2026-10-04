@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>spotDL</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="app">
+  <header class="titlebar">
+    <div class="controls">
+      <button class="tb-btn close" id="btn-close" title="Close" aria-label="Close">×</button>
+      <button class="tb-btn min" id="btn-min" title="Minimize" aria-label="Minimize">–</button>
+    </div>
+    <div class="drag pywebview-drag-region"><span>spotDL</span></div>
+  </header>
+
+  <main class="content">
+    <form class="link-row" id="add-form" autocomplete="off">
+      <input id="link" type="url" placeholder="Paste a Spotify link: track, album, playlist or artist" spellcheck="false">
+      <button type="submit" id="add-btn">Add</button>
+    </form>
+    <div class="message" id="message" aria-live="polite"></div>
+
+    <div class="tank" id="tank">
+      <!-- background layer: lava -->
+      <svg class="lava" viewBox="0 0 880 430" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+        <defs>
+          <filter id="goo">
+            <feGaussianBlur in="SourceGraphic" stdDeviation="10" result="blur"/>
+            <feColorMatrix in="blur" mode="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 21 -9"/>
+          </filter>
+          <radialGradient id="lavaGrad" cx="35%" cy="30%" r="75%">
+            <stop offset="0" stop-color="#9dff8f"/>
+            <stop offset=".25" stop-color="#5be36a"/>
+            <stop offset=".6" stop-color="#2fb84f"/>
+            <stop offset="1" stop-color="#156e2c"/>
+          </radialGradient>
+        </defs>
+        <g filter="url(#goo)" fill="url(#lavaGrad)" opacity=".5">
+          <ellipse cx="440" cy="452" rx="520" ry="38"/>
+          <ellipse cx="440" cy="-24" rx="420" ry="28"/>
+          <!-- --travel is how far each blob floats -->
+          <circle class="blob" cx="80"  cy="410" r="46" style="--travel:-360px;animation-duration:26s;animation-delay:-4s"/>
+          <circle class="blob" cx="190" cy="420" r="30" style="--travel:-390px;animation-duration:19s;animation-delay:-11s"/>
+          <circle class="blob" cx="300" cy="400" r="58" style="--travel:-330px;animation-duration:34s;animation-delay:-20s"/>
+          <circle class="blob" cx="430" cy="420" r="38" style="--travel:-380px;animation-duration:23s;animation-delay:-7s"/>
+          <circle class="blob" cx="560" cy="405" r="52" style="--travel:-350px;animation-duration:30s;animation-delay:-16s"/>
+          <circle class="blob" cx="680" cy="420" r="34" style="--travel:-385px;animation-duration:21s;animation-delay:-3s"/>
+          <circle class="blob" cx="800" cy="410" r="48" style="--travel:-360px;animation-duration:28s;animation-delay:-22s"/>
+          <circle class="blob" cx="240" cy="20"  r="36" style="--travel:380px;animation-duration:32s;animation-delay:-9s"/>
+          <circle class="blob" cx="620" cy="15"  r="42" style="--travel:370px;animation-duration:27s;animation-delay:-14s"/>
+          <circle class="blob" cx="110" cy="440" r="28" style="--travel:-300px;animation-duration:26s;animation-delay:-5s"/>
+          <circle class="blob" cx="580" cy="440" r="26" style="--travel:-280px;animation-duration:30s;animation-delay:-18s"/>
+          <circle class="blob" cx="270" cy="0"   r="22" style="--travel:300px;animation-duration:32s;animation-delay:-10s"/>
+          <circle class="blob" cx="760" cy="25"  r="24" style="--travel:390px;animation-duration:18s;animation-delay:-6s"/>
+        </g>
+      </svg>
+
+      <!-- top layer: draggable bubbles -->
+      <div class="bubble flag-bubble" id="flag-bubble" title="Checking location…">
+        <div class="body">
+          <div class="skin"></div>
+          <div class="inner">
+            <div class="flag" id="flag"><span class="code" id="flag-code">…</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="bubble eta-bubble" id="eta-bubble">
+        <div class="body">
+          <div class="skin"></div>
+          <div class="inner">
+            <svg class="ring" viewBox="0 0 150 150" aria-hidden="true">
+              <circle cx="75" cy="75" r="66" class="track"/>
+              <circle cx="75" cy="75" r="66" class="glow" id="ring-glow"/>
+              <circle cx="75" cy="75" r="66" class="bar" id="ring-bar"/>
+            </svg>
+            <div class="eta"><small>ETA</small><b id="eta">--:--</b></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="queue-head"><h2>Queue</h2><span id="counts">No songs yet</span></div>
+    <ul class="queue" id="queue"></ul>
+  </main>
+</div>
+<script src="app.js"></script>
+</body>
+</html>
