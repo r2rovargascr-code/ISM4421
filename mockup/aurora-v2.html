@@ -1,0 +1,276 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>spotDL Aurora</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --text: #f2fff0;
+    --text-dim: #b9d9b6;
+    --text-faint: #86b383;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    min-height: 100vh; display: flex; justify-content: center; align-items: flex-start; padding: 32px 16px;
+    color: var(--text); font-family: "Nunito", "Segoe UI", system-ui, sans-serif;
+    background:
+      radial-gradient(ellipse 60% 30% at 20% 15%, rgba(91,227,106,.45), transparent 70%),
+      radial-gradient(ellipse 50% 25% at 80% 30%, rgba(157,255,143,.30), transparent 70%),
+      radial-gradient(ellipse 70% 30% at 50% 95%, rgba(47,184,79,.40), transparent 70%),
+      linear-gradient(160deg, #0b3d1b 0%, #062a12 50%, #0d4a20 100%);
+  }
+
+  /* ---------- window ---------- */
+  .window {
+    width: 560px; max-width: 100%; border-radius: 18px; overflow: hidden;
+    background: linear-gradient(180deg, rgba(40,140,70,.35), rgba(8,50,22,.45));
+    border: 1px solid rgba(157,255,143,.55);
+    box-shadow: 0 30px 80px rgba(0,20,6,.6), inset 0 1px 0 rgba(212,255,201,.6);
+    backdrop-filter: blur(18px) saturate(1.4); -webkit-backdrop-filter: blur(18px) saturate(1.4);
+  }
+  .titlebar {
+    height: 38px; display: flex; align-items: center; gap: 8px; padding: 0 14px;
+    background: linear-gradient(180deg, rgba(157,255,143,.40) 0%, rgba(60,180,90,.25) 50%, rgba(20,100,45,.25) 51%, rgba(40,140,70,.3) 100%);
+    border-bottom: 1px solid rgba(157,255,143,.35);
+  }
+  .titlebar i { width: 12px; height: 12px; border-radius: 50%; background: #1f9a3c;
+    box-shadow: inset 0 -3px 5px rgba(0,60,10,.35), inset 0 3px 3px rgba(240,255,235,.8); }
+  .titlebar i:nth-child(2) { background: #4fd468; }
+  .titlebar i:nth-child(3) { background: #9dff8f; }
+  .titlebar span { margin-left: 10px; font-size: 13px; font-weight: 700; letter-spacing: .08em; color: #e8ffe2; }
+
+  .content { padding: 18px; display: flex; flex-direction: column; gap: 16px; }
+
+  /* ---------- link row ---------- */
+  .link-row { display: flex; gap: 10px; }
+  .link-row input {
+    flex: 1; min-width: 0; height: 44px; padding: 0 16px; border-radius: 22px; outline: none;
+    background: rgba(4,40,15,.55); border: 1px solid rgba(157,255,143,.5); box-shadow: inset 0 2px 8px rgba(0,0,0,.4);
+    color: var(--text); font: inherit; font-size: 14px;
+  }
+  .link-row input::placeholder { color: var(--text-faint); }
+  .link-row button {
+    position: relative; overflow: hidden; height: 44px; padding: 0 24px; border-radius: 22px; cursor: pointer;
+    border: 1px solid rgba(10,90,30,.6); color: #04300f; font: inherit; font-weight: 800; font-size: 15px;
+    background: linear-gradient(180deg, #9dff8f 0%, #4fd468 50%, #1f9a3c 51%, #5be36a 100%);
+    box-shadow: 0 0 20px rgba(91,227,106,.45);
+  }
+  .link-row button::before {
+    content: ""; position: absolute; left: 4px; right: 4px; top: 2px; height: 48%; border-radius: 20px 20px 10px 10px;
+    background: linear-gradient(180deg, rgba(240,255,235,.85), rgba(240,255,235,.15));
+  }
+
+  /* ---------- tank ---------- */
+  .tank {
+    position: relative; height: 380px; border-radius: 20px; overflow: hidden;
+    border: 1px solid rgba(157,255,143,.6);
+    background: radial-gradient(ellipse at 50% 60%, #0f4a1e 0%, #082a11 40%, #031208 75%, #000 100%);
+    box-shadow: inset 0 0 50px rgba(0,20,6,.7), inset 0 1px 0 rgba(212,255,201,.5), 0 0 40px rgba(91,227,106,.2);
+  }
+  .tank::after {
+    content: ""; position: absolute; left: 3%; right: 3%; top: 6px; height: 34%; pointer-events: none;
+    border-radius: 16px 16px 50% 50% / 16px 16px 30px 30px;
+    background: linear-gradient(180deg, rgba(240,255,235,.07), rgba(240,255,235,0) 70%);
+  }
+  .lava { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+  /* each blob sinks 260 units and floats back up, like the original pen */
+  .lava .blob { animation: sink linear infinite alternate; }
+  @keyframes sink { from { transform: translateY(0); } to { transform: translateY(260px); } }
+
+  /* ---------- glass bubbles ---------- */
+  .bubble {
+    position: absolute; display: flex; align-items: center; justify-content: center;
+    background: radial-gradient(circle at 50% 50%, rgba(91,227,106,.08) 0%, rgba(91,227,106,.16) 55%, rgba(157,255,143,.45) 85%, rgba(212,255,201,.65) 100%);
+    backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px);
+    border: 1px solid rgba(212,255,201,.6);
+    box-shadow: 0 0 34px rgba(91,227,106,.35), inset 0 -16px 30px rgba(47,184,79,.35), inset 0 0 14px rgba(212,255,201,.35);
+    animation: morph 14s ease-in-out infinite, bob 9s ease-in-out infinite;
+  }
+  .bubble::before {
+    content: ""; position: absolute; left: 16%; top: 7%; width: 54%; height: 26%; border-radius: 50%; pointer-events: none;
+    background: radial-gradient(ellipse at 50% 30%, rgba(240,255,235,.8), rgba(240,255,235,0) 70%); transform: rotate(-12deg);
+  }
+  .bubble::after {
+    content: ""; position: absolute; right: 14%; bottom: 10%; width: 14%; height: 8%; border-radius: 50%;
+    background: radial-gradient(rgba(212,255,201,.6), transparent 70%);
+  }
+  @keyframes morph {
+    0%, 100% { border-radius: 58% 42% 55% 45% / 52% 60% 40% 48%; }
+    33%      { border-radius: 45% 55% 40% 60% / 60% 45% 55% 40%; }
+    66%      { border-radius: 52% 48% 62% 38% / 44% 56% 44% 56%; }
+  }
+  @keyframes bob {
+    0%, 100% { transform: translateY(0) rotate(0deg); }
+    50%      { transform: translateY(-10px) rotate(3deg); }
+  }
+
+  .flag { width: 62px; height: 62px; left: 34px; top: 30px; animation-delay: -3s, -2s; }
+  .flag .f { width: 38px; height: 38px; border-radius: 50%; overflow: hidden; box-shadow: 0 0 0 2px rgba(212,255,201,.55); }
+  .flag .f svg { width: 100%; height: 100%; display: block; }
+
+  .ring { width: 190px; height: 190px; left: calc(50% - 95px); top: calc(50% - 95px); animation-delay: -7s, -5s; }
+  .ring svg { position: absolute; inset: 20px; width: 150px; height: 150px; transform: rotate(-90deg); }
+  .ring .eta { position: relative; text-align: center; text-shadow: 0 1px 8px rgba(2,20,8,.7); }
+  .ring .eta small { display: block; font-size: 11px; font-weight: 700; letter-spacing: .2em; color: #d4ffc9; }
+  .ring .eta b { font-size: 30px; font-weight: 800; font-variant-numeric: tabular-nums; }
+
+  /* ---------- queue ---------- */
+  .queue {
+    list-style: none; display: flex; flex-direction: column; gap: 6px;
+    height: 160px; overflow-y: scroll; padding-right: 8px;
+  }
+  .queue::-webkit-scrollbar { width: 10px; }
+  .queue::-webkit-scrollbar-track { background: rgba(4,40,15,.55); border-radius: 10px; box-shadow: inset 0 1px 4px rgba(0,0,0,.5); }
+  .queue::-webkit-scrollbar-thumb {
+    border-radius: 10px; border: 1px solid rgba(10,90,30,.6);
+    background: linear-gradient(90deg, #9dff8f 0%, #4fd468 50%, #1f9a3c 51%, #5be36a 100%);
+  }
+  .row {
+    --p: 0%; position: relative; flex-shrink: 0; overflow: hidden;
+    height: 46px; display: flex; align-items: center; padding: 0 16px; border-radius: 14px;
+    background: linear-gradient(180deg, rgba(60,170,90,.22), rgba(8,50,22,.35)); border: 1px solid rgba(157,255,143,.28);
+  }
+  .row.done { opacity: .5; }
+  .row.active {
+    border-color: rgba(157,255,143,.8);
+    background: linear-gradient(90deg, rgba(47,184,79,.85) 0%, rgba(140,240,125,.9) var(--p), rgba(8,50,22,.35) var(--p));
+  }
+  .row.active::before {
+    content: ""; position: absolute; left: 0; right: 0; top: 0; height: 50%; pointer-events: none;
+    background: linear-gradient(180deg, rgba(240,255,235,.4), rgba(240,255,235,.05));
+  }
+  .line {
+    position: relative; flex: 1; min-width: 0; overflow: hidden; white-space: nowrap;
+    font-size: 18px; text-shadow: 0 1px 4px rgba(0,30,8,.7);
+  }
+  .line .track { display: inline-block; }
+  .line .t { font-weight: 800; }
+  .line .a { margin-left: 12px; color: var(--text-dim); font-weight: 600; }
+  .row.active .a { color: var(--text); }
+  /* airport-board ticker for names that don't fit */
+  .line.scroll { -webkit-mask-image: linear-gradient(90deg, transparent, #000 4%, #000 96%, transparent); mask-image: linear-gradient(90deg, transparent, #000 4%, #000 96%, transparent); }
+  .line.scroll .track { animation: ticker var(--dur, 12s) linear infinite; }
+  .line.scroll .gap { display: inline-block; width: 60px; }
+  @keyframes ticker { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+
+  @media (prefers-reduced-motion: reduce) {
+    .lava .blob, .bubble, .line.scroll .track { animation: none; }
+  }
+</style>
+</head>
+<body>
+<div class="window">
+  <div class="titlebar"><i></i><i></i><i></i><span>spotDL</span></div>
+
+  <div class="content">
+    <form class="link-row" onsubmit="return false">
+      <input type="url" placeholder="Paste a Spotify link" value="https://open.spotify.com/playlist/37i9dQZF1DX0XUsuxWHRQd">
+      <button type="submit">Add</button>
+    </form>
+
+    <div class="tank">
+      <!-- background layer: the CodePen lava, recoloured green, placed twice side by side -->
+      <svg class="lava" id="lava" viewBox="0 0 520 380" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+        <defs>
+          <filter id="goo">
+            <feGaussianBlur in="SourceGraphic" stdDeviation="8" result="blur"/>
+            <feColorMatrix in="blur" mode="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 21 -9" result="cm"/>
+          </filter>
+          <!-- original orange stops mapped to greens -->
+          <radialGradient id="blob0_2_" cx="292" cy="171.5" r="56.5354" gradientUnits="userSpaceOnUse"><stop offset=".0102" stop-color="#b4ff9a"/><stop offset=".1922" stop-color="#a6fb8c"/><stop offset=".3992" stop-color="#8bee77"/><stop offset=".6186" stop-color="#62d35c"/><stop offset=".8449" stop-color="#3cad46"/><stop offset="1" stop-color="#1f7f33"/></radialGradient>
+          <radialGradient id="blob1_2_" cx="297" cy="167.5" r="37.2156" gradientUnits="userSpaceOnUse"><stop offset=".0102" stop-color="#b4ff9a"/><stop offset=".1922" stop-color="#a6fb8c"/><stop offset=".3992" stop-color="#8bee77"/><stop offset=".6186" stop-color="#62d35c"/><stop offset=".8449" stop-color="#3cad46"/><stop offset="1" stop-color="#1f7f33"/></radialGradient>
+          <radialGradient id="blob2_2_" cx="294" cy="157" r="23" gradientUnits="userSpaceOnUse"><stop offset=".0102" stop-color="#b4ff9a"/><stop offset=".1922" stop-color="#a6fb8c"/><stop offset=".3992" stop-color="#8bee77"/><stop offset=".6186" stop-color="#62d35c"/><stop offset=".8449" stop-color="#3cad46"/><stop offset="1" stop-color="#1f7f33"/></radialGradient>
+          <radialGradient id="botBlob_2_" cx="284.5" cy="421.5" r="53.521" gradientTransform="matrix(-2.802637e-002 -0.9996 5.9976 -0.1682 -2235.533 776.7669)" gradientUnits="userSpaceOnUse"><stop offset=".0102" stop-color="#b4ff9a"/><stop offset=".1922" stop-color="#a6fb8c"/><stop offset=".3992" stop-color="#8bee77"/><stop offset=".6186" stop-color="#62d35c"/><stop offset=".8449" stop-color="#3cad46"/><stop offset="1" stop-color="#1f7f33"/></radialGradient>
+          <radialGradient id="blob3_2_" cx="291.9382" cy="167.4587" r="41.0767" gradientUnits="userSpaceOnUse"><stop offset=".0102" stop-color="#b4ff9a"/><stop offset=".1922" stop-color="#a6fb8c"/><stop offset=".3992" stop-color="#8bee77"/><stop offset=".6186" stop-color="#62d35c"/><stop offset=".8449" stop-color="#3cad46"/><stop offset="1" stop-color="#1f7f33"/></radialGradient>
+          <radialGradient id="blob4_2_" cx="306.5" cy="155" r="14.109" gradientUnits="userSpaceOnUse"><stop offset=".0102" stop-color="#b4ff9a"/><stop offset=".1922" stop-color="#a6fb8c"/><stop offset=".3992" stop-color="#8bee77"/><stop offset=".6186" stop-color="#62d35c"/><stop offset=".8449" stop-color="#3cad46"/><stop offset="1" stop-color="#1f7f33"/></radialGradient>
+
+          <!-- one lava column, blob paths copied from the pen -->
+          <g id="lavaUnit">
+            <path class="blob" fill="url(#blob0_2_)" d="M326.2,149.5c-5,19.2-21.4,29.2-37.8,26.6c-16.5-2.9-33.4-12.9-37.1-26.6c-3.8-13.6,12.5-32.1,37.8-34.9C314.4,111.8,331.3,130.4,326.2,149.5z"/>
+            <path class="blob" fill="url(#blob1_2_)" d="M320.5,146.4c-4.4,10.1-16.4,20.2-26.8,25.3c-10.4,5.2-22.4-2.9-26.8-15.2c-4.4-11.6,7.6-20.4,26.8-25.3C312.9,126.3,324.9,135.6,320.5,146.4z"/>
+            <path class="blob" fill="url(#blob2_2_)" d="M278,147.7c2.7-7.1,9.4-15.7,15.4-16.4c5.9-0.4,12.6,8.5,15.4,16.9c2.7,8.4-4.2,14.9-15.4,14.2C282.2,161.5,275.3,154.8,278,147.7z"/>
+            <path fill="url(#botBlob_2_)" d="M354,381.2c6.8,3.4,5.4,7.4-5.6,10.4c-10.7,3.1-31.1,5.1-54.4,8.4c-23.3,3.3-43.7,0.8-54.4-2.4c-11-3.4-12.4-7.6-5.6-13.8c6.8-7,18.9-14.6,29.6-17.4c11-3.3,20.6-1.8,30.4-1.4c9.8,0.4,19.4,5.1,30.4,8.3C335.1,376.8,347.2,378.6,354,381.2z"/>
+            <path class="blob" fill="url(#blob3_2_)" d="M312.7,147.3c-2.1,16.4-15.3,27.2-23.2,25.3c-8.1-1.8-12.6-13-14.8-24.9c-1.9-11.8,2.7-22.7,14.8-25.3C301.5,119.6,314.7,130.8,312.7,147.3z"/>
+            <path class="blob" fill="url(#blob4_2_)" d="M317.8,147.4c-1,8.2-9.8,10.3-13.8,9.3c-4-0.9-6.5-3-7.6-8.9c-1-5.9,2.3-8.5,8.4-9.8C310.8,136.6,318.8,139.1,317.8,147.4z"/>
+          </g>
+        </defs>
+        <!-- two copies are inserted here by the script below -->
+      </svg>
+
+      <!-- top layer -->
+      <div class="bubble flag" title="Switzerland">
+        <div class="f">
+          <!-- placeholder: the real app will load the flag for the detected country -->
+          <svg viewBox="0 0 32 32"><rect width="32" height="32" fill="#d52b1e"/><rect x="13" y="6" width="6" height="20" fill="#fff"/><rect x="6" y="13" width="20" height="6" fill="#fff"/></svg>
+        </div>
+      </div>
+
+      <div class="bubble ring">
+        <svg viewBox="0 0 150 150">
+          <circle cx="75" cy="75" r="66" fill="none" stroke="rgba(2,30,10,.55)" stroke-width="10"/>
+          <circle cx="75" cy="75" r="66" fill="none" stroke="#9dff8f" stroke-opacity=".35" stroke-width="16" stroke-linecap="round"
+                  stroke-dasharray="414.7" stroke-dashoffset="157.6"/>
+          <circle cx="75" cy="75" r="66" fill="none" stroke="#d4ffc9" stroke-width="10" stroke-linecap="round"
+                  stroke-dasharray="414.7" stroke-dashoffset="157.6"/>
+        </svg>
+        <div class="eta"><small>ETA</small><b>04:18</b></div>
+      </div>
+    </div>
+
+    <ul class="queue" id="queue">
+      <li class="row done"><div class="line"><span class="track"><span class="t">Midnight City</span><span class="a">M83</span></span></div></li>
+      <li class="row done"><div class="line"><span class="track"><span class="t">Electric Feel</span><span class="a">MGMT</span></span></div></li>
+      <li class="row done"><div class="line"><span class="track"><span class="t">Rattlesnake</span><span class="a">King Gizzard &amp; The Lizard Wizard</span></span></div></li>
+      <li class="row active" style="--p:47%"><div class="line"><span class="track"><span class="t">Lost in Yesterday (Live at Glastonbury 2019 Remaster)</span><span class="a">Tame Impala</span></span></div></li>
+      <li class="row"><div class="line"><span class="track"><span class="t">Let It Happen</span><span class="a">Tame Impala</span></span></div></li>
+      <li class="row"><div class="line"><span class="track"><span class="t">Time to Pretend</span><span class="a">MGMT</span></span></div></li>
+      <li class="row"><div class="line"><span class="track"><span class="t">Wait</span><span class="a">M83</span></span></div></li>
+    </ul>
+  </div>
+</div>
+
+<script>
+  // Lava: the pen's lava column (x 190-394, y 105-405) is scaled uniformly to the tank's
+  // height and placed twice side by side, instead of being stretched across the tank.
+  const SVG_NS = 'http://www.w3.org/2000/svg';
+  const lava = document.getElementById('lava');
+  const unit = document.getElementById('lavaUnit');
+  const rand = (min, max) => Math.floor(Math.random() * (max - min + 1) + min);
+  const k = 380 / 300;
+  [130, 390].forEach(cx => {
+    const g = document.createElementNS(SVG_NS, 'g');
+    g.setAttribute('filter', 'url(#goo)');
+    g.setAttribute('transform', `translate(${cx} 0) scale(${k}) translate(-292 -105)`);
+    unit.querySelectorAll('path').forEach(p => {
+      const c = p.cloneNode(true);
+      if (c.classList.contains('blob')) {
+        // same timing as the pen: 14-50s per pass at 2x speed, started mid-cycle
+        const dur = rand(14, 50) / 2;
+        c.style.animationDuration = dur + 's';
+        c.style.animationDelay = -rand(0, dur * 2 * 10) / 10 + 's';
+      }
+      g.appendChild(c);
+    });
+    lava.appendChild(g);
+  });
+
+  // Airport-board ticker for names that don't fit on one line.
+  document.querySelectorAll('.line').forEach(line => {
+    const track = line.querySelector('.track');
+    if (track.scrollWidth <= line.clientWidth) return;
+    const gap = document.createElement('span');
+    gap.className = 'gap';
+    track.append(gap, ...[...track.children].filter(n => n !== gap).map(n => n.cloneNode(true)));
+    line.style.setProperty('--dur', Math.round(track.scrollWidth / 2 / 40) + 's');
+    line.classList.add('scroll');
+  });
+
+  // Keep the song currently downloading in view.
+  const q = document.getElementById('queue');
+  const active = q.querySelector('.row.active');
+  if (active) q.scrollTop = active.offsetTop - q.offsetTop - q.clientHeight / 2 + active.clientHeight / 2;
+</script>
+</body>
+</html>
