@@ -17,9 +17,9 @@ Songs are saved to `Music/spotDL` in your home folder as MP3.
 
 ### Install on Windows (no Python needed)
 
-Download `spotDL-Lava-Setup.exe` from the repository's **Releases** page (or from the latest
-**Build Windows installer** run under **Actions**), run it, and start **spotDL Lava** from the
-Start menu. It installs for the current user, so no administrator rights are needed, and it can be
+Download the installer:
+**[spotDL-Lava-Setup.exe](https://github.com/r2rovargascr-code/ISM4421/raw/claude/nifty-hypatia-bohpvl/installer/spotDL-Lava-Setup.exe)**
+(rebuilt automatically after every change), run it, and start **spotDL Lava** from the Start menu. It installs for the current user, so no administrator rights are needed, and it can be
 removed from *Settings → Apps*. The installer can be copied to any Windows 10/11 PC.
 
 The log file and saved bubble positions are kept in `%LOCALAPPDATA%\spotDL Lava`.
