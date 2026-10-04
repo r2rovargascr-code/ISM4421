@@ -67,6 +67,18 @@ jobs:
           name: spotDL-Lava-Setup
           path: dist/spotDL-Lava-Setup.exe
 
+      - name: Save installer in the branch for direct download
+        if: github.ref_type == 'branch'
+        shell: pwsh
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          New-Item -ItemType Directory -Force installer | Out-Null
+          Copy-Item dist\spotDL-Lava-Setup.exe installer\
+          git add installer/spotDL-Lava-Setup.exe
+          git commit -m "Update Windows installer [skip ci]"
+          git push origin "HEAD:${{ github.ref_name }}"
+
       - name: Attach to release
         if: github.ref_type == 'tag'
         uses: softprops/action-gh-release@v2
