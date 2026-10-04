@@ -166,7 +166,9 @@ def open_window(manager: Manager, debug: bool) -> bool:
         log.info("window loaded the interface")
 
     window.events.loaded += on_loaded
-    webview.start(http_server=True, debug=debug, icon=str(WEB_DIR / "icon.png"))
+    # Windows' window engine only accepts .ico files as the window icon
+    icon = WEB_DIR / ("icon.ico" if sys.platform == "win32" else "icon.png")
+    webview.start(http_server=True, debug=debug, icon=str(icon))
     return bool(loaded)
 
 
