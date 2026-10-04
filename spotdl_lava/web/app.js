@@ -20,6 +20,8 @@ const backend = {
         state: () => api.state(),
         add: (link) => api.add(link),
         refreshLocation: () => api.refresh_location(),
+        getPrefs: () => api.get_prefs(),
+        setPref: (key, value) => api.set_pref(key, value),
         minimize: () => api.minimize(),
         close: () => api.close(),
       });
@@ -32,6 +34,12 @@ const backend = {
         state: () => fetch('/api/state', { cache: 'no-store' }).then((r) => r.json()),
         add: (link) => post('/api/add', { link }),
         refreshLocation: () => post('/api/location'),
+        getPrefs: async () => {
+          const prefs = {};
+          for (const b of bubbles) prefs[b.key] = storageGet(b.key);
+          return prefs;
+        },
+        setPref: async (key, value) => storageSet(key, value),
         minimize: () => {},
         close: () => {},
       });
@@ -75,10 +83,9 @@ const bubbles = [];
 
 function makeBubble(node, key, home) {
   const skin = node.querySelector('.skin');
-  const saved = storageGet(key);
   const b = {
     node, skin, key,
-    fx: saved ? saved.fx : home[0], fy: saved ? saved.fy : home[1], // centre, as a fraction of the tank
+    fx: home[0], fy: home[1], // centre, as a fraction of the tank
     x: 0, y: 0,
     vx: 0, vy: 0,                 // drag velocity, px/s
     dx: 0, dy: 0, dvx: 0, dvy: 0, // deformation vector and its rate
@@ -120,7 +127,7 @@ function makeBubble(node, key, home) {
     b.dvx += b.vx * 0.0012;
     b.dvy += b.vy * 0.0012;
     b.vx = b.vy = 0;
-    storageSet(b.key, { fx: b.fx, fy: b.fy });
+    if (backend.setPref) backend.setPref(b.key, { fx: b.fx, fy: b.fy });
     if (b.moved < 4 && b.onTap) b.onTap();
   };
   node.addEventListener('pointerup', release);
@@ -304,4 +311,16 @@ $('#btn-min').addEventListener('click', () => backend.minimize());
 
 layoutBubbles();
 requestAnimationFrame(animate);
-backend.connect().then(poll);
+backend.connect().then(async () => {
+  try {
+    const prefs = (await backend.getPrefs()) || {};
+    for (const b of bubbles) {
+      const p = prefs[b.key];
+      if (p && Number.isFinite(p.fx) && Number.isFinite(p.fy)) { b.fx = p.fx; b.fy = p.fy; }
+    }
+    layoutBubbles();
+  } catch (err) {
+    console.error(err);
+  }
+  poll();
+});

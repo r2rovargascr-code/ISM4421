@@ -8,7 +8,10 @@
 from __future__ import annotations
 
 import argparse
+import json
 import logging
+import os
+import sys
 from pathlib import Path
 
 from .backend import DemoEngine, Manager, SpotdlEngine
@@ -16,12 +19,65 @@ from .backend import DemoEngine, Manager, SpotdlEngine
 WEB_DIR = Path(__file__).resolve().parent / "web"
 
 
+def data_dir() -> Path:
+    """Per-user folder for the log file and saved preferences."""
+    if sys.platform == "win32":
+        base = Path(os.environ.get("LOCALAPPDATA") or Path.home() / "AppData" / "Local")
+    elif sys.platform == "darwin":
+        base = Path.home() / "Library" / "Application Support"
+    else:
+        base = Path(os.environ.get("XDG_DATA_HOME") or Path.home() / ".local" / "share")
+    path = base / "spotDL Lava"
+    path.mkdir(parents=True, exist_ok=True)
+    return path
+
+
+def setup_logging(debug: bool) -> None:
+    log_file = data_dir() / "spotdl-lava.log"
+    # A windowed build (no console) has no stdout/stderr; spotDL still prints, so send it to the log.
+    if sys.stdout is None or sys.stderr is None:
+        stream = open(log_file, "a", encoding="utf-8", buffering=1)
+        sys.stdout = sys.stdout or stream
+        sys.stderr = sys.stderr or stream
+    handlers = [logging.FileHandler(log_file, encoding="utf-8"), logging.StreamHandler()]
+    logging.basicConfig(level=logging.DEBUG if debug else logging.INFO, handlers=handlers,
+                        format="%(asctime)s %(levelname)s %(name)s: %(message)s")
+
+
+class Prefs:
+    """Small JSON store, e.g. where the bubbles were left."""
+
+    def __init__(self, path: Path):
+        self._path = path
+        try:
+            self._data = json.loads(path.read_text(encoding="utf-8"))
+        except (OSError, ValueError):
+            self._data = {}
+
+    def get(self) -> dict:
+        return dict(self._data)
+
+    def set(self, key: str, value) -> None:
+        self._data[key] = value
+        try:
+            self._path.write_text(json.dumps(self._data), encoding="utf-8")
+        except OSError:
+            logging.getLogger(__name__).warning("could not save preferences to %s", self._path)
+
+
 class Api:
     """Methods callable from the page as `window.pywebview.api.<name>()`."""
 
-    def __init__(self, manager: Manager):
+    def __init__(self, manager: Manager, prefs: Prefs):
         self._manager = manager
+        self._prefs = prefs
         self._window = None
+
+    def get_prefs(self) -> dict:
+        return self._prefs.get()
+
+    def set_pref(self, key: str, value) -> None:
+        self._prefs.set(key, value)
 
     def state(self) -> dict:
         return self._manager.state()
@@ -52,8 +108,7 @@ def main() -> None:
     parser.add_argument("--debug", action="store_true", help="verbose logging")
     args = parser.parse_args()
 
-    logging.basicConfig(level=logging.DEBUG if args.debug else logging.INFO,
-                        format="%(asctime)s %(levelname)s %(name)s: %(message)s")
+    setup_logging(args.debug)
 
     if args.demo:
         factory = DemoEngine
@@ -74,7 +129,7 @@ def main() -> None:
         serve(manager, WEB_DIR, args.port)
         return
 
-    api = Api(manager)
+    api = Api(manager, Prefs(data_dir() / "prefs.json"))
     window = webview.create_window(
         "spotDL",
         str(WEB_DIR / "index.html"),
@@ -87,7 +142,7 @@ def main() -> None:
         background_color="#000000",
     )
     api._window = window
-    webview.start(http_server=True, debug=args.debug)
+    webview.start(http_server=True, debug=args.debug, icon=str(WEB_DIR / "icon.png"))
 
 
 if __name__ == "__main__":

@@ -13,13 +13,27 @@ A green lava-lamp desktop interface for [spotDL](https://github.com/spotDL/spoti
 
 Songs are saved to `Music/spotDL` in your home folder as MP3.
 
-### Requirements
+### Install on Windows (no Python needed)
+
+Download `spotDL-Lava-Setup.exe` from the repository's **Releases** page (or from the latest
+**Build Windows installer** run under **Actions**), run it, and start **spotDL Lava** from the
+Start menu. It installs for the current user, so no administrator rights are needed, and it can be
+removed from *Settings → Apps*. The installer can be copied to any Windows 10/11 PC.
+
+The log file and saved bubble positions are kept in `%LOCALAPPDATA%\spotDL Lava`.
+
+To build the installer yourself on Windows: `pip install -r requirements.txt pyinstaller`,
+`python packaging/build.py`, then compile `packaging/installer.iss` with Inno Setup 6.
+
+### Run from source
+
+#### Requirements
 
 - Python 3.9 or newer
 - ffmpeg (if it is missing, the app downloads spotDL's own copy on first use)
 - Linux only: pywebview needs GTK or Qt, e.g. `pip install pywebview[qt]`
 
-### Run
+#### Run
 
 | System        | Command                                  |
 |---------------|------------------------------------------|
@@ -29,7 +43,7 @@ Songs are saved to `Music/spotDL` in your home folder as MP3.
 
 The first run creates a `.venv` folder and installs spotDL and pywebview into it.
 
-### Options
+#### Options
 
 ```
 python -m spotdl_lava --output "D:\Music"   # save somewhere else
@@ -46,5 +60,6 @@ spotdl_lava/
   backend.py    download queue, ETA, IP location lookup
   server.py     local HTTP API for --browser mode
   web/          the interface (HTML, CSS, JavaScript)
+packaging/      icon, PyInstaller build script, Inno Setup installer script
 mockup/         design mockups and renders
 ```
