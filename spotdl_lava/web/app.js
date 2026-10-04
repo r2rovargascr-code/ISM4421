@@ -23,6 +23,7 @@ const backend = {
         getPrefs: () => api.get_prefs(),
         setPref: (key, value) => api.set_pref(key, value),
         minimize: () => api.minimize(),
+        toggleMaximize: () => api.toggle_maximize(),
         close: () => api.close(),
       });
     } else {
@@ -41,6 +42,7 @@ const backend = {
         },
         setPref: async (key, value) => storageSet(key, value),
         minimize: () => {},
+        toggleMaximize: async () => false,
         close: () => {},
       });
     }
@@ -88,6 +90,7 @@ function makeBubble(node, key, home) {
     fx: home[0], fy: home[1], // centre, as a fraction of the tank
     x: 0, y: 0,
     vx: 0, vy: 0,                 // drag velocity, px/s
+    gx: 0, gy: 0,                 // glide velocity after release, px/s
     dx: 0, dy: 0, dvx: 0, dvy: 0, // deformation vector and its rate
     energy: 0,
     phases: Array.from({ length: 4 }, () => Math.random() * Math.PI * 2),
@@ -101,6 +104,7 @@ function makeBubble(node, key, home) {
     node.setPointerCapture(e.pointerId);
     const r = tank.getBoundingClientRect();
     b.dragging = true;
+    b.gx = b.gy = 0;
     b.moved = 0;
     b.grab = [e.clientX - r.left - b.x, e.clientY - r.top - b.y];
     b.last = { x: e.clientX, y: e.clientY, t: performance.now() };
@@ -123,11 +127,16 @@ function makeBubble(node, key, home) {
     if (!b.dragging) return;
     b.dragging = false;
     node.classList.remove('dragging');
-    // hand the current speed to the spring so it jiggles after letting go
+    // hand the current speed to the spring so it jiggles after letting go,
+    // and let the bubble glide on a little in the direction it was pulled
     b.dvx += b.vx * 0.0012;
     b.dvy += b.vy * 0.0012;
+    const speed = Math.hypot(b.vx, b.vy);
+    const scale = speed > GLIDE_MAX ? GLIDE_MAX / speed : 1;
+    b.gx = b.vx * GLIDE_SHARE * scale;
+    b.gy = b.vy * GLIDE_SHARE * scale;
     b.vx = b.vy = 0;
-    if (backend.setPref) backend.setPref(b.key, { fx: b.fx, fy: b.fy });
+    if (Math.hypot(b.gx, b.gy) < GLIDE_STOP) { b.gx = b.gy = 0; savePosition(b); }
     if (b.moved < 4 && b.onTap) b.onTap();
   };
   node.addEventListener('pointerup', release);
@@ -135,6 +144,15 @@ function makeBubble(node, key, home) {
 
   bubbles.push(b);
   return b;
+}
+
+const GLIDE_SHARE = 0.6;     // share of the release speed kept for gliding
+const GLIDE_MAX = 1600;      // px/s
+const GLIDE_FRICTION = 0.02; // speed left after one second of gliding
+const GLIDE_STOP = 8;        // px/s
+
+function savePosition(b) {
+  if (backend.setPref) backend.setPref(b.key, { fx: b.fx, fy: b.fy });
 }
 
 function place(b, x, y) {
@@ -158,11 +176,20 @@ function animate(now) {
     if (b.dragging) {          // velocity fades when the pointer stops moving
       b.vx *= Math.pow(0.02, dt);
       b.vy *= Math.pow(0.02, dt);
+    } else if (b.gx || b.gy) { // glide after release, bouncing softly off the glass
+      const nx = b.x + b.gx * dt, ny = b.y + b.gy * dt;
+      place(b, nx, ny);
+      if (Math.abs(b.x - nx) > 0.5) b.gx *= -0.45;
+      if (Math.abs(b.y - ny) > 0.5) b.gy *= -0.45;
+      const f = Math.pow(GLIDE_FRICTION, dt);
+      b.gx *= f;
+      b.gy *= f;
+      if (Math.hypot(b.gx, b.gy) < GLIDE_STOP) { b.gx = b.gy = 0; savePosition(b); }
     }
-    // spring: deformation chases a target set by the drag speed
+    // spring: deformation chases a target set by the drag (or glide) speed
     const K = 0.00055, STIFF = 170, DAMP = 7;
-    const tx = b.dragging ? b.vx * K : 0;
-    const ty = b.dragging ? b.vy * K : 0;
+    const tx = (b.dragging ? b.vx : b.gx * 0.6) * K;
+    const ty = (b.dragging ? b.vy : b.gy * 0.6) * K;
     b.dvx += (STIFF * (tx - b.dx) - DAMP * b.dvx) * dt;
     b.dvy += (STIFF * (ty - b.dy) - DAMP * b.dvy) * dt;
     b.dx += b.dvx * dt;
@@ -170,7 +197,7 @@ function animate(now) {
 
     const mag = Math.min(Math.hypot(b.dx, b.dy), 0.32);
     const ang = Math.atan2(b.dy, b.dx);
-    const speed = Math.hypot(b.vx, b.vy);
+    const speed = Math.hypot(b.vx, b.vy) + Math.hypot(b.gx, b.gy);
     const target = Math.min(1, speed / 700 + Math.hypot(b.dvx, b.dvy) * 0.6);
     b.energy += (target - b.energy) * Math.min(1, dt * 4);
 
@@ -200,25 +227,23 @@ window.addEventListener('resize', layoutBubbles);
 const RING = 2 * Math.PI * 66;
 for (const c of [$('#ring-bar'), $('#ring-glow')]) c.style.strokeDasharray = RING;
 
-let shownFlag = null;
+function flagEmoji(code) {
+  // two regional-indicator letters, e.g. "CH" -> 🇨🇭
+  return String.fromCodePoint(...[...code].map((c) => 0x1F1E6 + c.charCodeAt(0) - 65));
+}
+
 function renderLocation(loc) {
   const node = $('#flag-bubble');
+  const flag = $('#flag');
   node.classList.toggle('checking', loc.status === 'checking');
-  if (loc.status === 'ok') {
+  if (loc.status === 'ok' && /^[A-Z]{2}$/.test(loc.code || '')) {
     node.title = `${loc.country} · ${loc.ip}  (click to re-check)`;
-    if (shownFlag !== loc.code) {
-      shownFlag = loc.code;
-      const flag = $('#flag');
-      const img = new Image();
-      img.alt = loc.country;
-      img.onerror = () => flag.replaceChildren(el('span', 'code', loc.code));
-      img.src = `https://flagcdn.com/w160/${loc.code.toLowerCase()}.png`;
-      flag.replaceChildren(img);
-    }
-  } else if (loc.status === 'error') {
-    node.title = 'Could not determine your location (click to retry)';
-    shownFlag = null;
-    $('#flag').replaceChildren(el('span', 'code', '?'));
+    flag.textContent = flagEmoji(loc.code);
+    flag.classList.remove('text');
+  } else if (loc.status === 'ok' || loc.status === 'error') {
+    node.title = loc.status === 'ok' ? `${loc.country} · ${loc.ip}` : 'Could not determine your location (click to retry)';
+    flag.textContent = loc.status === 'ok' ? (loc.code || '?') : '?';
+    flag.classList.add('text');
   }
 }
 
@@ -275,9 +300,12 @@ function renderQueue(items) {
 
 function render(state) {
   renderLocation(state.location || {});
-  $('#ring-bar').style.strokeDashoffset = RING * (1 - state.overall);
-  $('#ring-glow').style.strokeDashoffset = RING * (1 - state.overall);
-  $('#eta').textContent = clock(state.eta);
+  const active = state.eta != null; // something queued or downloading
+  const fill = active ? state.overall : 0;
+  $('#ring-bar').style.strokeDashoffset = RING * (1 - fill);
+  $('#ring-glow').style.strokeDashoffset = RING * (1 - fill);
+  $('#eta-box').hidden = !active;
+  $('#eta').textContent = active ? clock(state.eta) : '';
   const total = state.items.length;
   $('#counts').textContent = total ? `${total} song${total === 1 ? '' : 's'} · ${state.finished} done` : 'No songs yet';
   const msg = $('#message');
@@ -308,6 +336,13 @@ $('#add-form').addEventListener('submit', async (e) => {
 });
 $('#btn-close').addEventListener('click', () => backend.close());
 $('#btn-min').addEventListener('click', () => backend.minimize());
+async function toggleMaximize() {
+  const maximized = await backend.toggleMaximize();
+  document.body.classList.toggle('maximized', !!maximized);
+  $('#btn-max').title = maximized ? 'Restore Down' : 'Maximize';
+}
+$('#btn-max').addEventListener('click', toggleMaximize);
+$('.drag').addEventListener('dblclick', toggleMaximize);
 
 layoutBubbles();
 requestAnimationFrame(animate);

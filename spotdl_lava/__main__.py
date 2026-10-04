@@ -78,6 +78,7 @@ class Api:
         self._manager = manager
         self._prefs = prefs
         self._window = None
+        self._maximized = False
 
     def get_prefs(self) -> dict:
         return self._prefs.get()
@@ -97,6 +98,17 @@ class Api:
     def minimize(self) -> None:
         if self._window:
             self._window.minimize()
+
+    def toggle_maximize(self) -> bool:
+        """Maximize or restore the window; returns True when it is now maximized."""
+        if not self._window:
+            return False
+        if self._maximized:
+            self._window.restore()
+        else:
+            self._window.maximize()
+        self._maximized = not self._maximized
+        return self._maximized
 
     def close(self) -> None:
         if self._window:

@@ -11,15 +11,24 @@
 <body>
 <div class="app">
   <header class="titlebar">
-    <div class="controls">
-      <button class="tb-btn close" id="btn-close" title="Close" aria-label="Close">×</button>
-      <button class="tb-btn min" id="btn-min" title="Minimize" aria-label="Minimize">–</button>
+    <div class="drag pywebview-drag-region"><img src="icon.png" alt=""><span>spotDL</span></div>
+    <!-- Windows 10 caption buttons -->
+    <div class="captions">
+      <button class="cap" id="btn-min" title="Minimize" aria-label="Minimize">
+        <svg viewBox="0 0 10 10"><path d="M0 5.5h10" /></svg>
+      </button>
+      <button class="cap" id="btn-max" title="Maximize" aria-label="Maximize">
+        <svg viewBox="0 0 10 10" class="i-max"><rect x=".5" y=".5" width="9" height="9" /></svg>
+        <svg viewBox="0 0 10 10" class="i-restore"><path d="M2.5 2.5V.5h7v7h-2" /><rect x=".5" y="2.5" width="7" height="7" /></svg>
+      </button>
+      <button class="cap close" id="btn-close" title="Close" aria-label="Close">
+        <svg viewBox="0 0 10 10"><path d="M0 0l10 10M10 0L0 10" /></svg>
+      </button>
     </div>
-    <div class="drag pywebview-drag-region"><span>spotDL</span></div>
   </header>
 
   <main class="content">
-    <form class="link-row" id="add-form" autocomplete="off">
+    <form class="link-row" id="add-form" autocomplete="off" novalidate>
       <input id="link" type="url" placeholder="Paste a Spotify link: track, album, playlist or artist" spellcheck="false">
       <button type="submit" id="add-btn">Add</button>
     </form>
@@ -65,7 +74,7 @@
         <div class="body">
           <div class="skin"></div>
           <div class="inner">
-            <div class="flag" id="flag"><span class="code" id="flag-code">…</span></div>
+            <div class="flag" id="flag">…</div>
           </div>
         </div>
       </div>
@@ -79,7 +88,7 @@
               <circle cx="75" cy="75" r="66" class="glow" id="ring-glow"/>
               <circle cx="75" cy="75" r="66" class="bar" id="ring-bar"/>
             </svg>
-            <div class="eta"><small>ETA</small><b id="eta">--:--</b></div>
+            <div class="eta" id="eta-box" hidden><small>ETA</small><b id="eta"></b></div>
           </div>
         </div>
       </div>
