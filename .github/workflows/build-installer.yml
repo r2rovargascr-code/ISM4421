@@ -38,6 +38,23 @@ jobs:
           if ($null -eq $state.items) { throw "app did not respond" }
           "packaged app started and answered"
 
+      - name: Smoke test the app window
+        shell: pwsh
+        run: |
+          $log = Join-Path $env:LOCALAPPDATA "spotDL Lava\spotdl-lava.log"
+          Remove-Item $log -ErrorAction SilentlyContinue
+          $p = Start-Process -FilePath "dist\spotDL Lava\spotDL Lava.exe" -ArgumentList "--demo","--debug" -PassThru
+          Start-Sleep -Seconds 25
+          $proc = Get-Process -Id $p.Id -ErrorAction SilentlyContinue
+          "process running: $([bool]$proc)  exit code: $($p.ExitCode)  window title: '$($proc.MainWindowTitle)'"
+          "----- log -----"
+          if (Test-Path $log) { Get-Content $log -Tail 120 } else { "no log file" }
+          "---------------"
+          if ($proc) { Stop-Process -Id $p.Id -Force }
+          $text = if (Test-Path $log) { Get-Content $log -Raw } else { "" }
+          if (-not $proc) { throw "app exited instead of showing its window" }
+          if ($text -notmatch "window loaded the interface") { throw "app window did not load the interface" }
+
       - name: Build installer
         shell: pwsh
         run: |
