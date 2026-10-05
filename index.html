@@ -12,7 +12,7 @@
   <link rel="apple-touch-icon" href="favicon.svg">
   <link rel="stylesheet" href="style.css">
 </head>
-<body>
+<body class="locked">
   <!-- Shared gradients and filters for the weather icons and CRT screens -->
   <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
     <defs>
@@ -60,6 +60,10 @@
           <button type="button" data-unit="F">&deg;F</button>
           <button type="button" data-unit="K">K</button>
         </div>
+        <div class="account" id="account" hidden>
+          <span class="account-name" id="account-name"></span>
+          <button type="button" class="bar-button text" id="account-signout">Sign Out</button>
+        </div>
         <button type="button" class="bar-button" id="refresh" aria-label="Refresh weather">
           <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M17.7 6.3A8 8 0 1 0 20 12h-2.2a5.8 5.8 0 1 1-1.7-4.1L13 11h7V4z" fill="currentColor"/></svg>
         </button>
@@ -74,6 +78,34 @@
     </footer>
   </div>
 
+  <!-- Login (Supabase Auth) -->
+  <div class="auth" id="auth" hidden>
+    <form class="auth-sheet" id="auth-form" novalidate>
+      <h2 id="auth-heading">Sign In</h2>
+      <p class="auth-sub" id="auth-sub">Sign in to see the weather.</p>
+      <div id="auth-fields">
+        <div id="auth-username-row" hidden>
+          <label for="auth-username">Username</label>
+          <input id="auth-username" name="username" type="text" autocomplete="username" autocapitalize="none" spellcheck="false" maxlength="24">
+        </div>
+        <label for="auth-email">Email</label>
+        <input id="auth-email" name="email" type="email" autocomplete="email" autocapitalize="none" spellcheck="false" required>
+        <label for="auth-password">Password</label>
+        <input id="auth-password" name="password" type="password" autocomplete="current-password" required>
+        <div id="auth-confirm-row" hidden>
+          <label for="auth-confirm">Confirm Password</label>
+          <input id="auth-confirm" name="confirm" type="password" autocomplete="new-password">
+        </div>
+      </div>
+      <p class="auth-error" id="auth-error" role="alert"></p>
+      <p class="auth-notice" id="auth-notice" role="status" hidden></p>
+      <button type="submit" class="auth-submit" id="auth-submit">Sign In</button>
+      <p class="auth-resend" id="auth-resend-row" hidden><button type="button" id="auth-resend">Resend confirmation email</button></p>
+      <p class="auth-switch"><span id="auth-switch-text">New here?</span> <button type="button" id="auth-switch">Create an account</button></p>
+    </form>
+  </div>
+
+  <script src="auth.js"></script>
   <script src="app.js"></script>
 </body>
 </html>

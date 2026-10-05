@@ -859,3 +859,141 @@ button { font: inherit; cursor: pointer; }
 @media (prefers-reduced-motion: reduce) {
   .i6-flip { transition: none; }
 }
+
+/* ==========================================================================
+   Login (auth.js)
+   ========================================================================== */
+
+body.locked .window,
+body.locked .i6-dots { display: none; }
+
+.auth[hidden], .account[hidden], #auth-confirm-row[hidden] { display: none; }
+
+.auth {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  min-height: calc(100vh - 64px);
+  padding-top: 8vh;
+}
+
+/* Mac OS X Lion sheet */
+.auth-sheet {
+  width: 100%;
+  max-width: 340px;
+  padding: 22px 22px 18px;
+  color: #2f2f2f;
+  background: linear-gradient(#f4f5f7, #dfe2e7);
+  border-radius: 6px;
+  box-shadow:
+    0 0 0 1px rgba(0,0,0,.55),
+    0 22px 50px rgba(0,0,0,.6),
+    inset 0 1px 0 rgba(255,255,255,.9);
+}
+.auth-sheet h2 {
+  margin: 0;
+  font-size: 18px;
+  text-align: center;
+  text-shadow: 0 1px 0 #fff;
+}
+.auth-sub {
+  margin: 4px 0 16px;
+  font-size: 13px;
+  text-align: center;
+  color: #666;
+}
+.auth-sheet label {
+  display: block;
+  margin: 10px 0 4px;
+  font-size: 12px;
+  font-weight: bold;
+  color: #4a4a4a;
+}
+.auth-sheet input {
+  width: 100%;
+  padding: 7px 9px;
+  font: inherit;
+  font-size: 15px;
+  color: #222;
+  background: #fff;
+  border: 1px solid #9a9a9a;
+  border-radius: 4px;
+  box-shadow: inset 0 1px 2px rgba(0,0,0,.18);
+}
+.auth-sheet input:focus {
+  outline: none;
+  border-color: #4a8be0;
+  box-shadow: inset 0 1px 2px rgba(0,0,0,.18), 0 0 0 3px rgba(74,139,224,.45);
+}
+.auth-error {
+  min-height: 18px;
+  margin: 10px 0 6px;
+  font-size: 13px;
+  color: #b3261e;
+}
+.auth-submit {
+  width: 100%;
+  padding: 8px;
+  font-size: 15px;
+  font-weight: bold;
+  color: #fff;
+  text-shadow: 0 -1px 0 rgba(0,0,0,.35);
+  background: linear-gradient(#7fb2f0, #3d7fd6 50%, #2f6fc6 51%, #3b7ad0);
+  border: 1px solid #2459a6;
+  border-radius: 5px;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.45);
+}
+.auth-submit:active { background: linear-gradient(#2f6fc6, #4a8be0); }
+.auth-submit:disabled { opacity: .6; cursor: default; }
+.auth-switch {
+  margin: 14px 0 0;
+  font-size: 13px;
+  text-align: center;
+  color: #555;
+}
+.auth-switch button {
+  padding: 0;
+  color: #2a5bb0;
+  background: none;
+  border: 0;
+}
+.auth-switch button:hover { text-decoration: underline; }
+
+/* Signed-in account chip in the toolbar */
+.account { display: flex; align-items: center; gap: 8px; }
+.account-name {
+  font-size: 13px;
+  color: #3a3a3a;
+  text-shadow: 0 1px 0 rgba(255,255,255,.8);
+}
+.bar-button.text { width: auto; padding: 0 10px; font-size: 12px; font-weight: bold; }
+
+@media (max-width: 760px) {
+  .auth { min-height: 100vh; padding: 12vh 16px 0; }
+  .account-name { display: none; }
+}
+
+/* The iOS 6 look hides the title bar, so the account chip floats instead */
+.look-ios6 .account {
+  position: fixed;
+  top: 10px;
+  right: 10px;
+  z-index: 10;
+}
+.look-ios6 .account-name { color: #fff; text-shadow: 0 -1px 0 rgba(0,0,0,.5); }
+
+.auth [hidden] { display: none !important; }
+.auth-notice {
+  margin: 4px 0 12px;
+  padding: 10px 12px;
+  font-size: 13px;
+  line-height: 1.4;
+  color: #24456e;
+  background: #e3eefc;
+  border: 1px solid #a9c4ea;
+  border-radius: 4px;
+}
+.auth-resend { margin: 10px 0 0; text-align: center; font-size: 13px; }
+.auth-resend button { padding: 0; color: #2a5bb0; background: none; border: 0; }
+.auth-resend button:hover { text-decoration: underline; }
+.auth-resend button:disabled { opacity: .6; cursor: default; }

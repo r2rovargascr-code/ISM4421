@@ -76,3 +76,13 @@ region, latitude, longitude, and IANA time zone.
 ## Attribution
 
 Weather data by [Open-Meteo.com](https://open-meteo.com/), licensed under CC BY 4.0.
+
+## Login
+
+Visitors must sign in before the weather loads (`auth.js`, Supabase project **oct5**).
+
+- **Sign up:** username, email and password. Supabase emails a confirmation link that brings the visitor back to the site, signed in.
+- **Sign in:** email and password. Unconfirmed accounts are told to confirm and can resend the link.
+- `public.profiles` holds each user's username (3–24 characters: `a-z`, `0-9`, `_`), linked to `auth.users`.
+- In the Supabase dashboard, **Authentication → Sign In / Providers → Email → Confirm email** must be **on**, and
+  **Authentication → URL Configuration → Site URL** must be the site's address (e.g. `https://ladesgraciadelaeternaprimavera.netlify.app`).

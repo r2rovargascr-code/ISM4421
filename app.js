@@ -141,6 +141,8 @@
   })();
   document.body.classList.add('look-' + LOOK);
   var IOS6 = LOOK === 'ios6';
+  // That look hides the title bar, so the signed-in account chip moves out of it.
+  if (IOS6) document.body.appendChild(document.getElementById('account'));
 
   // Coordinate space of the main screen (every card shares it, so one CRT filter fits all)
   var TW = { w: 300, h: 160, cx: 50, cy: 46 };
@@ -528,17 +530,20 @@
   // Refresh when returning to a tab that has been in the background
   var lastLoad = 0;
   document.addEventListener('visibilitychange', function () {
-    if (!document.hidden && Date.now() - lastLoad > REFRESH_MS) { lastLoad = Date.now(); loadAll(); }
+    if (lastLoad && !document.hidden && Date.now() - lastLoad > REFRESH_MS) { lastLoad = Date.now(); loadAll(); }
   });
 
   /* ---------- Start ---------- */
 
-  if (!IOS6) buildCrtMap();
-  buildShells();
-  setUnit(state.unit);
-  tick();
-  setInterval(tick, 1000);
-  lastLoad = Date.now();
-  loadAll();
-  setInterval(function () { lastLoad = Date.now(); loadAll(); }, REFRESH_MS);
+  // The weather loads only after the visitor signs in (see auth.js).
+  window.WeatherAuth.ready(function () {
+    if (!IOS6) buildCrtMap();
+    buildShells();
+    setUnit(state.unit);
+    tick();
+    setInterval(tick, 1000);
+    lastLoad = Date.now();
+    loadAll();
+    setInterval(function () { lastLoad = Date.now(); loadAll(); }, REFRESH_MS);
+  });
 })();
