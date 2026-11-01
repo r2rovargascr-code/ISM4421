@@ -2,9 +2,11 @@
 
 ## spotDL Lava
 
-A green lava-lamp desktop interface for [spotDL](https://github.com/spotDL/spotify-downloader).
+A green lava-lamp desktop interface for [spotDL](https://github.com/spotDL/spotify-downloader)
+that downloads Spotify and YouTube Music songs, albums and playlists as MP3.
 
-- **Top row:** paste a Spotify track, album, playlist or artist link and press **Add**.
+- **Top row:** paste a Spotify link (track, album, playlist, artist) or a YouTube Music / YouTube link
+  (song, album, playlist; share links with `&si=` work) and press **Add**.
 - **Tank:** a green lava lamp. Two bubbles float on top of it; drag them anywhere and they wobble like lava,
   and glide on a little when you let go.
   - **Flag bubble:** the flag emoji of your current public IP address's country, so you can confirm the VPN is working.
@@ -13,7 +15,9 @@ A green lava-lamp desktop interface for [spotDL](https://github.com/spotDL/spoti
     (hidden when nothing is downloading).
 - **Queue:** every song to be downloaded. The row of the song currently downloading fills up as its progress bar.
 
-Songs are saved to `Music/spotDL` in your home folder as MP3.
+Songs are saved to `Music/spotDL` in your home folder, always as MP3 with title, artist, album and cover art.
+Spotify links go through spotDL; YouTube Music links are read from YouTube Music directly (so songs that
+are not on Spotify are kept) and downloaded with yt-dlp.
 
 ### Install on Windows (no Python needed)
 
@@ -49,7 +53,6 @@ The first run creates a `.venv` folder and installs spotDL and pywebview into it
 
 ```
 python -m spotdl_lava --output "D:\Music"   # save somewhere else
-python -m spotdl_lava --format flac         # mp3 (default), m4a, flac, opus, ogg, wav
 python -m spotdl_lava --browser             # open in the web browser instead of a window
 python -m spotdl_lava --demo                # fake downloads, to try the interface
 ```
@@ -60,6 +63,7 @@ python -m spotdl_lava --demo                # fake downloads, to try the interfa
 spotdl_lava/
   __main__.py   window setup and command-line options
   backend.py    download queue, ETA, IP location lookup
+  youtube.py    YouTube Music / YouTube links: read lists, download as MP3
   server.py     local HTTP API for --browser mode
   web/          the interface (HTML, CSS, JavaScript)
 packaging/      icon, PyInstaller build script, Inno Setup installer script
@@ -72,3 +76,6 @@ Flag emoji are drawn with the "Twemoji Country Flags" font from
 [country-flag-emoji-polyfill](https://github.com/talkjs/country-flag-emoji-polyfill) (MIT),
 whose artwork comes from [Twemoji](https://github.com/twitter/twemoji) (CC-BY 4.0).
 See `spotdl_lava/web/fonts/TwemojiCountryFlags-LICENSE.md`.
+
+The Windows installer includes [QuickJS-ng](https://github.com/quickjs-ng/quickjs) (MIT), the JavaScript
+runtime yt-dlp needs to download from YouTube.

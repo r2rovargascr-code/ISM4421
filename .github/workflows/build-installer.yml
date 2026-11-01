@@ -25,21 +25,28 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt pyinstaller
 
-      - name: Window check from source (diagnostic)
-        continue-on-error: true
+      - name: Download QuickJS (JavaScript runtime yt-dlp needs for YouTube)
         shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
-          $p = Start-Process -FilePath python -ArgumentList "-m","spotdl_lava","--demo" -PassThru `
-                 -RedirectStandardOutput src-out.txt -RedirectStandardError src-err.txt
-          Start-Sleep -Seconds 25
-          $proc = Get-Process -Id $p.Id -ErrorAction SilentlyContinue
-          "process running: $([bool]$proc)  exit code: $($p.ExitCode)"
-          "----- stderr -----"; Get-Content src-err.txt -Tail 80
-          "----- stdout -----"; Get-Content src-out.txt -Tail 40
-          if ($proc) { Stop-Process -Id $p.Id -Force }
+          $assets = (gh release view --repo quickjs-ng/quickjs --json tagName,assets | ConvertFrom-Json)
+          "QuickJS-ng release $($assets.tagName): $($assets.assets.name -join ', ')"
+          $asset = $assets.assets | Where-Object { $_.name -match '^qjs-windows-(x86_64|x64|amd64)\.exe$' } | Select-Object -First 1
+          if (-not $asset) { throw "no Windows x64 qjs build in the latest QuickJS-ng release" }
+          New-Item -ItemType Directory -Force vendor | Out-Null
+          gh release download --repo quickjs-ng/quickjs $assets.tagName --pattern $asset.name --output vendor\qjs.exe
+          (& vendor\qjs.exe --help 2>&1 | Select-Object -First 1)
+
+      - name: Live check - YouTube Music playlist to MP3 (from source)
+        continue-on-error: true  # YouTube sometimes blocks data-centre IPs; the result is still reported
+        run: python packaging/ci_youtube_check.py vendor\qjs.exe
 
       - name: Build app
-        run: python packaging/build.py
+        shell: pwsh
+        run: |
+          python packaging/build.py
+          Copy-Item vendor\qjs.exe "dist\spotDL Lava\qjs.exe"
 
       - name: Smoke test the packaged app
         shell: pwsh
@@ -73,6 +80,7 @@ jobs:
           $text = if (Test-Path $log) { Get-Content $log -Raw } else { "" }
           if (-not $proc) { throw "app exited instead of showing its window" }
           if ($text -notmatch "window loaded the interface") { throw "app window did not load the interface" }
+          if ($text -notmatch "JavaScript runtime for YouTube: .*qjs") { throw "bundled QuickJS was not found by the app" }
 
       - name: Build installer
         shell: pwsh

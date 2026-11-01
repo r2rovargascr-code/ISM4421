@@ -6,6 +6,7 @@ import itertools
 import json
 import logging
 import random
+import sys
 import threading
 import time
 import urllib.request
@@ -16,6 +17,23 @@ from typing import Any, Callable, Optional
 log = logging.getLogger(__name__)
 
 FINISHED = ("done", "skipped", "error")
+
+
+def bundled_js_runtime() -> Optional[Path]:
+    """QuickJS shipped next to the packaged app; yt-dlp needs a JavaScript runtime for YouTube."""
+    if not getattr(sys, "frozen", False):
+        return None
+    exe = Path(sys.executable).parent / ("qjs.exe" if sys.platform == "win32" else "qjs")
+    return exe if exe.exists() else None
+
+
+def js_runtimes() -> dict:
+    """yt-dlp `js_runtimes` option: a system-wide deno if installed, else the bundled QuickJS."""
+    runtimes: dict = {"deno": {}}
+    qjs = bundled_js_runtime()
+    if qjs:
+        runtimes["quickjs"] = {"path": str(qjs)}
+    return runtimes
 
 
 @dataclass
@@ -48,23 +66,28 @@ class Item:
 
 
 class SpotdlEngine:
-    """Thin wrapper around the spotDL library.
+    """Downloads Spotify links with spotDL and YouTube / YouTube Music links with yt-dlp.
 
-    Must be created and used from a single thread: spotDL binds an asyncio
-    event loop to the thread that creates it.
+    Everything is saved as MP3. Must be created and used from a single thread:
+    spotDL binds an asyncio event loop to the thread that creates it.
     """
 
-    def __init__(self, output_dir: Path, audio_format: str = "mp3"):
+    def __init__(self, output_dir: Path):
         from spotdl import Spotdl
         from spotdl.download.downloader import DownloaderError
         from spotdl.utils.config import SPOTIFY_OPTIONS
 
         output_dir.mkdir(parents=True, exist_ok=True)
+        self._output_dir = output_dir
         settings = {
             "output": str(output_dir / "{artists} - {title}.{output-ext}"),
-            "format": audio_format,
+            "format": "mp3",
             "simple_tui": True,
         }
+        qjs = bundled_js_runtime()
+        if qjs:
+            # spotDL also downloads its audio from YouTube through yt-dlp
+            settings["yt_dlp_args"] = f"--js-runtimes deno --js-runtimes 'quickjs:{qjs.as_posix()}'"
         kwargs = dict(
             client_id=SPOTIFY_OPTIONS["client_id"],
             client_secret=SPOTIFY_OPTIONS["client_secret"],
@@ -95,6 +118,10 @@ class SpotdlEngine:
             self._on_progress(float(tracker.progress), message)
 
     def search(self, link: str) -> list[dict]:
+        from . import youtube
+
+        if youtube.is_youtube_link(link):
+            return youtube.search(link)
         songs = self._spotdl.search([link])
         return [
             {
@@ -109,6 +136,11 @@ class SpotdlEngine:
         ]
 
     def download(self, song: Any, on_progress: Callable[[float, str], None]) -> str:
+        if isinstance(song, dict) and song.get("source") == "youtube":
+            from . import youtube
+
+            return youtube.download(song, self._output_dir, self._spotdl.downloader.ffmpeg,
+                                    js_runtimes(), on_progress)
         self._on_progress = on_progress
         self._last_message = ""
         try:

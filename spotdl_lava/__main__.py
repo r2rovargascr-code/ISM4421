@@ -16,7 +16,7 @@ import os
 import sys
 from pathlib import Path
 
-from .backend import DemoEngine, Manager, SpotdlEngine
+from .backend import DemoEngine, Manager, SpotdlEngine, bundled_js_runtime
 
 WEB_DIR = Path(__file__).resolve().parent / "web"
 
@@ -119,7 +119,6 @@ def main() -> None:
     parser = argparse.ArgumentParser(prog="spotdl_lava", description="Lava lamp UI for spotDL")
     parser.add_argument("--output", type=Path, default=Path.home() / "Music" / "spotDL",
                         help="folder to save songs in (default: %(default)s)")
-    parser.add_argument("--format", default="mp3", help="audio format, e.g. mp3, m4a, flac, opus")
     parser.add_argument("--browser", action="store_true", help="open in the web browser instead of a window")
     parser.add_argument("--port", type=int, default=8765, help="port for --browser mode")
     parser.add_argument("--demo", action="store_true", help="simulate downloads instead of using spotDL")
@@ -130,11 +129,12 @@ def main() -> None:
     log = logging.getLogger("spotdl_lava")
     log.info("spotDL Lava starting: Python %s, %s, frozen=%s",
              platform.python_version(), platform.platform(), getattr(sys, "frozen", False))
+    log.info("JavaScript runtime for YouTube: %s", bundled_js_runtime() or "none bundled (deno if installed)")
 
     if args.demo:
         factory = DemoEngine
     else:
-        factory = lambda: SpotdlEngine(args.output.expanduser(), args.format)  # noqa: E731
+        factory = lambda: SpotdlEngine(args.output.expanduser())  # noqa: E731
     manager = Manager(factory)
 
     if not args.browser:
