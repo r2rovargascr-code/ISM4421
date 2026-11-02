@@ -21,6 +21,7 @@ args = [
     "--clean",
     "--windowed",  # no console window
     "--icon", str(ROOT / "packaging" / ("icon.ico" if sys.platform == "win32" else "icon.png")),
+    *(["--version-file", str(ROOT / "packaging" / "version_info.txt")] if sys.platform == "win32" else []),
     "--paths", str(ROOT),
     "--add-data", f"{ROOT / 'spotdl_lava' / 'web'}{SEP}spotdl_lava/web",
     # spotDL and its helpers load modules and data files dynamically
