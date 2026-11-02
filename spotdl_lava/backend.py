@@ -365,8 +365,11 @@ class Manager:
 
     def _lookup(self, engine: Any, link: str) -> None:
         self._set_message("Looking up link…")
+        log.info("looking up %s", link)
+        started = time.monotonic()
         try:
             found = engine.search(link)
+            log.info("found %d songs in %.0fs", len(found), time.monotonic() - started)
         except Exception as exc:
             log.exception("search failed for %s", link)
             with self._lock:
@@ -389,22 +392,64 @@ class Manager:
                 self._message = f"{found.note}. {self._message}"
 
     def _download(self, engine: Any, item: Item) -> None:
-        def on_progress(progress: float, _message: str) -> None:
+        last_step = [""]
+
+        def on_progress(progress: float, message: str) -> None:
+            if message and message != last_step[0]:
+                last_step[0] = message
+                log.info("  %s - %s: %s (%d%%)", item.artist, item.title, message, progress)
             with self._lock:
                 item.progress = max(item.progress, min(progress, 100.0))
 
-        try:
-            result = engine.download(item.song, on_progress)
-            error = None
-        except Exception as exc:
-            log.exception("download failed: %s - %s", item.artist, item.title)
-            result, error = "error", str(exc)
+        log.info("downloading %s - %s", item.artist, item.title)
+        started = time.monotonic()
+        if isinstance(item.song, dict):
+            # yt-dlp work runs on a helper thread so a hung download can't block the queue
+            result, error = self._run_watched(item, lambda: engine.download(item.song, on_progress))
+        else:  # spotDL Song objects must stay on this (the event loop's) thread
+            try:
+                result, error = engine.download(item.song, on_progress), None
+            except Exception as exc:
+                log.exception("download failed: %s - %s", item.artist, item.title)
+                result, error = "error", str(exc)
+        log.info("%s: %s - %s after %.0fs%s", result, item.artist, item.title,
+                 time.monotonic() - started, f" ({error})" if error else "")
         with self._lock:
             item.status, item.error = result, error
             item.progress = 100.0
             if result == "done":
                 self._song_times.append(time.monotonic() - self._current_started)
             self._current = None
+
+    STALL_SECONDS = 300  # a song with no progress for this long is given up on
+
+    def _run_watched(self, item: Item, work: Callable[[], str]) -> tuple[str, Optional[str]]:
+        box: dict = {}
+
+        def run() -> None:
+            try:
+                box["result"] = work()
+            except Exception as exc:
+                log.exception("download failed: %s - %s", item.artist, item.title)
+                box["error"] = str(exc)
+
+        thread = threading.Thread(target=run, name="song", daemon=True)
+        thread.start()
+        last_progress, last_change = -1.0, time.monotonic()
+        while thread.is_alive():
+            thread.join(1.0)
+            with self._lock:
+                progress = item.progress
+            now = time.monotonic()
+            if progress != last_progress:
+                last_progress, last_change = progress, now
+            elif now - last_change > self.STALL_SECONDS:
+                log.error("%s - %s made no progress for %ds at %d%%; skipping it",
+                          item.artist, item.title, self.STALL_SECONDS, progress)
+                return "error", f"Stalled at {progress:.0f}% for {self.STALL_SECONDS // 60} minutes, skipped"
+        if "error" in box:
+            return "error", box["error"]
+        return box.get("result", "error"), None
 
     def _set_message(self, message: str) -> None:
         with self._lock:

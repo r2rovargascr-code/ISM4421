@@ -218,7 +218,9 @@ def download(song: dict, output_dir: Path, ffmpeg: str, js_runtimes: dict,
 
     def postprocessor_hook(d: dict) -> None:
         if d.get("status") == "started" and d.get("postprocessor") == "ExtractAudio":
-            on_progress(88.0, "Converting")
+            on_progress(88.0, "Converting to MP3")
+        elif d.get("status") == "started" and d.get("postprocessor") == "EmbedThumbnail":
+            on_progress(95.0, "Adding cover art")
 
     options = {
         "format": "bestaudio/best",
@@ -227,6 +229,9 @@ def download(song: dict, output_dir: Path, ffmpeg: str, js_runtimes: dict,
         "quiet": True,
         "no_warnings": True,
         "noprogress": True,
+        "socket_timeout": 30,
+        "retries": 5,
+        "fragment_retries": 5,
         "logger": _YtdlpLogger(),
         "ffmpeg_location": ffmpeg,
         "js_runtimes": js_runtimes,
@@ -247,6 +252,7 @@ def download(song: dict, output_dir: Path, ffmpeg: str, js_runtimes: dict,
         raise RuntimeError(str(exc).replace("ERROR: ", "", 1)) from exc
     if not target.exists():
         raise RuntimeError("Download finished but no MP3 was produced")
+    on_progress(97.0, "Writing tags")
     _write_tags(target, song)
     on_progress(100.0, "Done")
     return "done"
