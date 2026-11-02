@@ -79,10 +79,19 @@ Weather data by [Open-Meteo.com](https://open-meteo.com/), licensed under CC BY 
 
 ## Login
 
-Visitors must sign in before the weather loads (`auth.js`, Supabase project **oct5**).
+Visitors must sign in before the weather loads (`auth.js`, Supabase project **nov proj**).
 
-- **Sign up:** username, email and password. Supabase emails a confirmation link that brings the visitor back to the site, signed in.
-- **Sign in:** email and password. Unconfirmed accounts are told to confirm and can resend the link.
-- `public.profiles` holds each user's username (3–24 characters: `a-z`, `0-9`, `_`), linked to `auth.users`.
-- In the Supabase dashboard, **Authentication → Sign In / Providers → Email → Confirm email** must be **on**, and
-  **Authentication → URL Configuration → Site URL** must be the site's address (e.g. `https://ladesgraciadelaeternaprimavera.netlify.app`).
+- **Continue with Google:** Supabase handles the Google sign-in and returns the visitor to the site,
+  signed in. Their name and profile picture (`user_metadata.full_name` / `avatar_url`) appear in the toolbar.
+- **Email sign up:** username, email and password. Supabase emails a confirmation link that brings the visitor back, signed in.
+- **Email sign in:** email and password. Unconfirmed accounts are told to confirm and can resend the link.
+- `public.profiles` holds each user's username (3–24 characters: `a-z`, `0-9`, `_`; empty for Google accounts), linked to `auth.users`.
+
+Supabase dashboard settings this needs:
+
+- **Authentication → Sign In / Providers → Google:** enabled, with a Google OAuth client ID and secret
+  (Google Cloud Console → APIs & Services → Credentials; its authorized redirect URI is
+  `https://iegandokrxotskkeotse.supabase.co/auth/v1/callback`).
+- **Authentication → Sign In / Providers → Email → Confirm email:** on.
+- **Authentication → URL Configuration:** Site URL `https://ladesgraciadelaeternaprimavera.netlify.app`,
+  and the same address under Redirect URLs.

@@ -959,8 +959,65 @@ body.locked .i6-dots { display: none; }
 }
 .auth-switch button:hover { text-decoration: underline; }
 
+/* Continue with Google (glossy white, in the style of the other buttons) */
+.auth-google {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  padding: 8px;
+  font-size: 15px;
+  font-weight: bold;
+  color: #3c3c3c;
+  text-shadow: 0 1px 0 #fff;
+  background: linear-gradient(#ffffff, #eceef1 50%, #e3e6ea 51%, #e9ebee);
+  border: 1px solid #9a9ea6;
+  border-radius: 5px;
+  box-shadow: inset 0 1px 0 #fff, 0 1px 1px rgba(0,0,0,.12);
+}
+.auth-google:active { background: linear-gradient(#dfe2e6, #f3f4f6); }
+.auth-google:disabled { opacity: .6; cursor: default; }
+.auth-divider {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 14px 0 2px;
+  font-size: 12px;
+  color: #7a7a7a;
+  text-shadow: 0 1px 0 #fff;
+}
+.auth-divider::before,
+.auth-divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: #b9bdc4;
+  box-shadow: 0 1px 0 #fff;
+}
+
 /* Signed-in account chip in the toolbar */
 .account { display: flex; align-items: center; gap: 8px; }
+.account-avatar,
+.account-initial {
+  flex: 0 0 auto;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  box-shadow: 0 0 0 1px rgba(0,0,0,.35), 0 1px 0 rgba(255,255,255,.6);
+}
+.account-avatar { object-fit: cover; background: #ccc; }
+.account-initial {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: bold;
+  color: #fff;
+  text-shadow: 0 -1px 0 rgba(0,0,0,.35);
+  background: linear-gradient(#8aa0bd, #4b6790);
+}
+.account-avatar[hidden], .account-initial[hidden] { display: none; }
 .account-name {
   font-size: 13px;
   color: #3a3a3a;
@@ -970,7 +1027,18 @@ body.locked .i6-dots { display: none; }
 
 @media (max-width: 760px) {
   .auth { min-height: 100vh; padding: 12vh 16px 0; }
-  .account-name { display: none; }
+  /* Phones: name stays visible, shortened, next to the picture */
+  .account-name {
+    max-width: 72px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 12px;
+    font-weight: bold;
+    color: #fff;
+    text-shadow: 0 -1px 0 rgba(0,0,0,.5);
+  }
+  .titlebar .title { display: none; }
 }
 
 /* The iOS 6 look hides the title bar, so the account chip floats instead */

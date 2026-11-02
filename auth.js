@@ -1,20 +1,22 @@
 /* ==========================================================================
-   Email + password login with email confirmation, backed by Supabase Auth.
+   Login backed by Supabase Auth: "Continue with Google", or email + password
+   with email confirmation.
    Talks to the Supabase REST API directly (no library) so the site's
    Content-Security-Policy can keep script-src 'self'.
 
-   Flow:
-   1. Sign up with username, email and password. Supabase emails a link.
-   2. The link returns the visitor here with tokens in the URL fragment,
-      which signs them in.
-   3. Later visits: sign in with email and password.
+   Flows:
+   - Google: Supabase sends the visitor to Google and back here with tokens
+     in the URL fragment, which signs them in. Their name and picture come
+     from user_metadata (full_name / avatar_url).
+   - Email: sign up with username, email and password; Supabase emails a link
+     that returns here the same way. Later visits sign in with email and password.
    ========================================================================== */
 (function () {
   'use strict';
 
-  var SUPABASE_URL = 'https://khwpqueqpllwukqsyrex.supabase.co';
+  var SUPABASE_URL = 'https://iegandokrxotskkeotse.supabase.co';
   // Publishable key: designed to be public; access is enforced by Row Level Security.
-  var SUPABASE_KEY = 'sb_publishable_6r6TbqDVIaTIbmhnpeVMcw_oAv39m5b';
+  var SUPABASE_KEY = 'sb_publishable_gv0rL9lFwRZNeY9BI9sdfg_N4w7zzIz';
 
   var USERNAME_RE = /^[a-z0-9_]{3,24}$/;
   var EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -37,16 +39,24 @@
     } catch (e) { /* storage unavailable: session lasts for this page only */ }
   }
 
-  function usernameOf(user) {
-    return (user && user.user_metadata && user.user_metadata.username) || (user && user.email) || '';
+  // Display name and picture: Google puts them in user_metadata
+  // (full_name / name, avatar_url / picture); email sign-ups have a username.
+  function profileOf(user) {
+    var m = (user && user.user_metadata) || {};
+    return {
+      name: m.full_name || m.name || m.username || (user && user.email) || '',
+      avatar: m.avatar_url || m.picture || ''
+    };
   }
 
-  function toSession(json) {
+  function toSession(json, user) {
+    var p = profileOf(user || json.user);
     return {
       access_token: json.access_token,
       refresh_token: json.refresh_token,
       expires_at: Number(json.expires_at) || Math.floor(Date.now() / 1000) + (Number(json.expires_in) || 3600),
-      username: usernameOf(json.user)
+      name: p.name,
+      avatar: p.avatar
     };
   }
 
@@ -116,16 +126,27 @@
       });
   }
 
+  // Sends the visitor to Google through Supabase; they return to returnUrl() signed in.
+  function signInWithGoogle() {
+    location.assign(SUPABASE_URL + '/auth/v1/authorize?provider=google&redirect_to=' + encodeURIComponent(returnUrl()));
+  }
+
   function resend(email) {
     return api('POST', '/auth/v1/resend?redirect_to=' + encodeURIComponent(returnUrl()), { type: 'signup', email: email });
   }
 
   function refresh(s) {
     return api('POST', '/auth/v1/token?grant_type=refresh_token', { refresh_token: s.refresh_token })
-      .then(function (json) { var n = toSession(json); n.username = n.username || s.username; save(n); return n; });
+      .then(function (json) {
+        var n = toSession(json);
+        n.name = n.name || s.name;
+        n.avatar = n.avatar || s.avatar;
+        save(n);
+        return n;
+      });
   }
 
-  // Handles the return from the confirmation link: #access_token=...&refresh_token=...
+  // Handles the return from Google or the confirmation link: #access_token=...&refresh_token=...
   // or #error=...&error_description=...
   function fromLink() {
     if (!location.hash || location.hash.length < 2) return null;
@@ -136,17 +157,17 @@
     if (p.get('error')) {
       var msg = p.get('error_code') === 'otp_expired'
         ? 'That confirmation link has expired. Sign in to get a new one.'
-        : (p.get('error_description') || 'The confirmation link did not work.').replace(/\+/g, ' ');
+        : (p.get('error_description') || 'Sign-in did not complete. Please try again.').replace(/\+/g, ' ');
       return Promise.reject(new Error(msg));
     }
-    var s = toSession({
+    var tokens = {
       access_token: p.get('access_token'),
       refresh_token: p.get('refresh_token'),
       expires_at: p.get('expires_at'),
       expires_in: p.get('expires_in')
-    });
-    return api('GET', '/auth/v1/user', null, s.access_token).then(function (user) {
-      s.username = usernameOf(user);
+    };
+    return api('GET', '/auth/v1/user', null, tokens.access_token).then(function (user) {
+      var s = toSession(tokens, user);
       save(s);
       return s;
     });
@@ -183,6 +204,8 @@
   var errorEl = $('auth-error'), noticeEl = $('auth-notice');
   var resendRow = $('auth-resend-row'), resendBtn = $('auth-resend');
   var accountEl = $('account'), accountName = $('account-name');
+  var accountAvatar = $('account-avatar'), accountInitial = $('account-initial');
+  var googleBtn = $('auth-google'), divider = $('auth-divider');
   var mode = 'signin';
   var pendingEmail = '';
 
@@ -197,6 +220,8 @@
     switchBtn.textContent = up ? 'Sign In' : 'Create an account';
     fields.hidden = false;
     submitBtn.hidden = false;
+    googleBtn.hidden = false;
+    divider.hidden = false;
     userRow.hidden = !up;
     confirmRow.hidden = !up;
     passInput.setAttribute('autocomplete', up ? 'new-password' : 'current-password');
@@ -213,6 +238,8 @@
     sub.hidden = true;
     fields.hidden = true;
     submitBtn.hidden = true;
+    googleBtn.hidden = true;
+    divider.hidden = true;
     errorEl.textContent = '';
     noticeEl.textContent = 'We sent a confirmation link to ' + email + '. Open it on this device to finish signing in.';
     noticeEl.hidden = false;
@@ -229,10 +256,24 @@
     setTimeout(function () { (mode === 'signup' ? userInput : emailInput).focus(); }, 0);
   }
 
+  // Name and picture in the toolbar; the first letter stands in when there is no picture.
+  function showProfile(s) {
+    var name = s.name || s.username || '';
+    accountName.textContent = name;
+    accountEl.title = 'Signed in as ' + name;
+    accountInitial.textContent = (name.charAt(0) || '?').toUpperCase();
+    accountInitial.hidden = !!s.avatar;
+    accountAvatar.hidden = !s.avatar;
+    if (s.avatar) {
+      accountAvatar.onerror = function () { accountAvatar.hidden = true; accountInitial.hidden = false; };
+      accountAvatar.src = s.avatar;
+    }
+  }
+
   function enter(s) {
     gate.hidden = true;
     document.body.classList.remove('locked');
-    accountName.textContent = s.username;
+    showProfile(s);
     accountEl.hidden = false;
     scheduleRefresh();
     if (!started) {
@@ -247,6 +288,10 @@
     if (inCheckEmail) emailInput.value = pendingEmail;
   });
   $('account-signout').addEventListener('click', signOut);
+  googleBtn.addEventListener('click', function () {
+    googleBtn.disabled = true;
+    signInWithGoogle();
+  });
 
   resendBtn.addEventListener('click', function () {
     var email = pendingEmail || emailInput.value.trim().toLowerCase();
