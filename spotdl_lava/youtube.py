@@ -146,6 +146,47 @@ def _ytdlp_list(url: str) -> list[dict]:
     ]
 
 
+# ---------------------------------------------------------------- matching
+
+
+def _simplify(title: str) -> str:
+    """Drop decorations like " - Remastered 2009" or "(feat. X)" for comparisons."""
+    title = re.sub(r"\s+-\s+.*$", "", title or "")
+    title = re.sub(r"\s*[\(\[].*?[\)\]]", "", title)
+    return title.strip().lower()
+
+
+def find_on_ytmusic(title: str, artist: str, duration: int) -> dict:
+    """Find the YouTube Music song that best matches a song from Spotify.
+
+    Returns {"video_id", "album"}; raises LookupError if nothing plausible is found.
+    """
+    from rapidfuzz import fuzz
+
+    ytm = _ytm()
+    first_artist = (artist or "").split(",")[0].strip()
+    query = f"{first_artist} {_simplify(title) or title}"
+    best, best_score = None, 0.0
+    for kind in ("songs", "videos"):
+        for hit in ytm.search(query, filter=kind, limit=10)[:10]:
+            if not hit.get("videoId"):
+                continue
+            hit_artists = _artists(hit)
+            score = fuzz.token_set_ratio(_simplify(title), _simplify(hit.get("title", "")))
+            score += 0.6 * fuzz.token_set_ratio(first_artist.lower(), hit_artists.lower())
+            if duration and hit.get("duration_seconds"):
+                score -= min(abs(duration - hit["duration_seconds"]), 60) * 1.5
+            if kind == "videos":
+                score -= 10  # prefer the official audio upload
+            if score > best_score:
+                best, best_score = hit, score
+        if best_score >= 120:  # good enough among "songs": no need to look at videos
+            break
+    if best is None or best_score < 90:
+        raise LookupError(f"Couldn't find \"{artist} - {title}\" on YouTube Music")
+    return {"video_id": best["videoId"], "album": (best.get("album") or {}).get("name")}
+
+
 # ---------------------------------------------------------------- download
 
 
@@ -226,8 +267,24 @@ def _write_tags(path: Path, song: dict) -> None:
         if song.get("album"):
             tags["album"] = song["album"]
         tags.save(str(path))
+        if song.get("cover"):
+            _embed_cover(path, song["cover"])
     except Exception:
         log.warning("could not write tags to %s", path, exc_info=True)
+
+
+def _embed_cover(path: Path, url: str) -> None:
+    """Replace the video thumbnail with the album cover (songs from Spotify)."""
+    import requests
+    from mutagen.id3 import APIC, ID3
+
+    resp = requests.get(url, timeout=20)
+    resp.raise_for_status()
+    tags = ID3(str(path))
+    tags.delall("APIC")
+    tags.add(APIC(encoding=3, mime=resp.headers.get("Content-Type", "image/jpeg"), type=3,
+                  desc="Cover", data=resp.content))
+    tags.save(str(path))
 
 
 class _YtdlpLogger:

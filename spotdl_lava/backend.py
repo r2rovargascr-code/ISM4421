@@ -136,8 +136,15 @@ class SpotdlEngine:
     def search(self, link: str) -> list[dict]:
         from . import youtube
 
+        from . import spotify
+
         if youtube.is_youtube_link(link):
             return youtube.search(link)
+        if spotify.is_spotify_link(link):
+            try:
+                return spotify.search(link)
+            except Exception:
+                log.warning("reading %s from Spotify's player page failed; trying spotDL", link, exc_info=True)
         songs = self._spotdl.search([link])
         return [
             {
@@ -152,9 +159,15 @@ class SpotdlEngine:
         ]
 
     def download(self, song: Any, on_progress: Callable[[float, str], None]) -> str:
-        if isinstance(song, dict) and song.get("source") == "youtube":
+        if isinstance(song, dict) and song.get("source") in ("youtube", "spotify"):
             from . import youtube
 
+            if song["source"] == "spotify":  # find it on YouTube Music first
+                on_progress(1.0, "Searching")
+                match = youtube.find_on_ytmusic(song["title"], song["artist"], song.get("duration") or 0)
+                song = {**song, "source": "youtube",
+                        "url": f"https://music.youtube.com/watch?v={match['video_id']}",
+                        "album": song.get("album") or match["album"]}
             return youtube.download(song, self._output_dir,
                                     resolve_ffmpeg(self._spotdl.downloader.ffmpeg),
                                     js_runtimes(), on_progress)
@@ -372,6 +385,8 @@ class Manager:
                 self._message = "Those songs are already in the queue"
             else:
                 self._message = f"Added {len(new)} song{'s' if len(new) != 1 else ''}"
+            if getattr(found, "note", ""):
+                self._message = f"{found.note}. {self._message}"
 
     def _download(self, engine: Any, item: Item) -> None:
         def on_progress(progress: float, _message: str) -> None:

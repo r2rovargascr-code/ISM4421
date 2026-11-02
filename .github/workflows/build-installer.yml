@@ -42,6 +42,10 @@ jobs:
         continue-on-error: true  # YouTube sometimes blocks data-centre IPs; the result is still reported
         run: python packaging/ci_youtube_check.py vendor\qjs.exe
 
+      - name: Live check - Spotify links (from source)
+        continue-on-error: true
+        run: python packaging/ci_spotify_check.py
+
       - name: Build app
         shell: pwsh
         run: |

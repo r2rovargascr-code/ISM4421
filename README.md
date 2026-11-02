@@ -16,8 +16,9 @@ that downloads Spotify and YouTube Music songs, albums and playlists as MP3.
 - **Queue:** every song to be downloaded. The row of the song currently downloading fills up as its progress bar.
 
 Songs are saved to `Music/spotDL` in your home folder, always as MP3 with title, artist, album and cover art.
-Spotify links go through spotDL; YouTube Music links are read from YouTube Music directly (so songs that
-are not on Spotify are kept) and downloaded with yt-dlp.
+Spotify song lists are read from Spotify's public embed player (no Spotify login or API limits; playlists over
+100 songs fetch the rest through Spotify's web API, falling back to spotDL) and each song is found on
+YouTube Music. YouTube Music links are read from YouTube Music directly. Downloads use yt-dlp and ffmpeg.
 
 ### Install on Windows (no Python needed)
 
@@ -63,7 +64,8 @@ python -m spotdl_lava --demo                # fake downloads, to try the interfa
 spotdl_lava/
   __main__.py   window setup and command-line options
   backend.py    download queue, ETA, IP location lookup
-  youtube.py    YouTube Music / YouTube links: read lists, download as MP3
+  spotify.py    Spotify links: read song lists from the embed player
+  youtube.py    YouTube Music / YouTube links: read lists, match songs, download as MP3
   server.py     local HTTP API for --browser mode
   web/          the interface (HTML, CSS, JavaScript)
 packaging/      icon, PyInstaller build script, Inno Setup installer script
