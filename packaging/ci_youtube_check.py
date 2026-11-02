@@ -14,12 +14,10 @@ from spotdl_lava import youtube  # noqa: E402
 
 
 def ffmpeg_path() -> str:
-    found = shutil.which("ffmpeg")
-    if found:
-        return found
-    from spotdl.utils.ffmpeg import download_ffmpeg, get_ffmpeg_path
+    # resolved the same way the app does (spotDL's setting is a bare "ffmpeg")
+    from spotdl_lava.backend import resolve_ffmpeg
 
-    return str(get_ffmpeg_path() or download_ffmpeg())
+    return resolve_ffmpeg("ffmpeg")
 
 
 def main() -> None:

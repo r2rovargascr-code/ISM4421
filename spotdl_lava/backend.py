@@ -6,6 +6,7 @@ import itertools
 import json
 import logging
 import random
+import shutil
 import sys
 import threading
 import time
@@ -25,6 +26,21 @@ def bundled_js_runtime() -> Optional[Path]:
         return None
     exe = Path(sys.executable).parent / ("qjs.exe" if sys.platform == "win32" else "qjs")
     return exe if exe.exists() else None
+
+
+def resolve_ffmpeg(configured: str) -> str:
+    """Full path to ffmpeg. yt-dlp treats `ffmpeg_location` as a path, so a bare
+    "ffmpeg" (spotDL's setting when ffmpeg is on PATH) must be resolved first."""
+    from spotdl.utils.ffmpeg import download_ffmpeg, get_ffmpeg_path
+
+    path = Path(configured)
+    if path.is_absolute() and path.is_file():
+        return str(path)
+    found = shutil.which(configured) or get_ffmpeg_path()
+    if found:
+        return str(found)
+    log.info("ffmpeg not found, downloading it")
+    return str(download_ffmpeg())
 
 
 def js_runtimes() -> dict:
@@ -139,7 +155,8 @@ class SpotdlEngine:
         if isinstance(song, dict) and song.get("source") == "youtube":
             from . import youtube
 
-            return youtube.download(song, self._output_dir, self._spotdl.downloader.ffmpeg,
+            return youtube.download(song, self._output_dir,
+                                    resolve_ffmpeg(self._spotdl.downloader.ffmpeg),
                                     js_runtimes(), on_progress)
         self._on_progress = on_progress
         self._last_message = ""
